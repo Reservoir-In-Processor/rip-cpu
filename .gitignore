@@ -1,0 +1,7 @@
+# vscode settings
+.vscode/
+
+# verilator simulation files
+test/obj_dir/
+*.vcd
+*.gtkw
