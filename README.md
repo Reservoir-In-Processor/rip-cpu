@@ -14,7 +14,7 @@ ninja -C build
 Once the project is built, you can run the Verilated simulation using the following command:
 
 ```bash
-build/sim
+build/test_all
 ```
 
 This command will execute the simulation, and as a result, a waveform file named `simx.vcd` will be generated.
