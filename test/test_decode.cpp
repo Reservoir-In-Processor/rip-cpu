@@ -555,4 +555,221 @@ TEST_F(TestDecode, And) {
     EXPECT_FALSE(dut->inst.ctrl_signal_map.at("UPDATE_PC"));
 }
 
+TEST_F(TestDecode, Fence) {
+    dut->set_inst_code(0x0FF0000F);  // fence iorw, iorw
+
+    EXPECT_EQ(dut->RS1_NUM, 0);
+    EXPECT_EQ(dut->RS2_NUM, 0);
+    EXPECT_EQ(dut->RD_NUM, 0);
+    EXPECT_EQ(dut->IMM, 0);
+
+    EXPECT_EQ(dut->inst.get_inst_name(), "FENCE");
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("ACCESS_MEM"));
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("UPDATE_REG"));
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("UPDATE_PC"));
+}
+
+TEST_F(TestDecode, FenceI) {
+    dut->set_inst_code(0x0000100F);  // fence.i
+
+    EXPECT_EQ(dut->RS1_NUM, 0);
+    EXPECT_EQ(dut->RS2_NUM, 0);
+    EXPECT_EQ(dut->RD_NUM, 0);
+    EXPECT_EQ(dut->IMM, 0);
+
+    EXPECT_EQ(dut->inst.get_inst_name(), "FENCE_I");
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("ACCESS_MEM"));
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("UPDATE_REG"));
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("UPDATE_PC"));
+}
+
+TEST_F(TestDecode, Ecall) {
+    dut->set_inst_code(0x00000073);  // ecall
+
+    EXPECT_EQ(dut->RS1_NUM, 0);
+    EXPECT_EQ(dut->RS2_NUM, 0);
+    EXPECT_EQ(dut->RD_NUM, 0);
+    EXPECT_EQ(dut->IMM, 0);
+
+    EXPECT_EQ(dut->inst.get_inst_name(), "ECALL");
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("ACCESS_MEM"));
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("UPDATE_REG"));
+    EXPECT_TRUE(dut->inst.ctrl_signal_map.at("UPDATE_PC"));
+}
+
+TEST_F(TestDecode, Ebreak) {
+    dut->set_inst_code(0x00100073);  // ebreak
+
+    EXPECT_EQ(dut->RS1_NUM, 0);
+    EXPECT_EQ(dut->RS2_NUM, 0);
+    EXPECT_EQ(dut->RD_NUM, 0);
+    EXPECT_EQ(dut->IMM, 0);
+
+    EXPECT_EQ(dut->inst.get_inst_name(), "EBREAK");
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("ACCESS_MEM"));
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("UPDATE_REG"));
+    EXPECT_TRUE(dut->inst.ctrl_signal_map.at("UPDATE_PC"));
+}
+
+TEST_F(TestDecode, Csrrw) {
+    dut->set_inst_code(0x342110F3);  // csrrw x1, 834, x2
+
+    EXPECT_EQ(dut->RS1_NUM, 2);
+    EXPECT_EQ(dut->RS2_NUM, 0);
+    EXPECT_EQ(dut->RD_NUM, 1);
+    EXPECT_EQ(dut->IMM, 0);
+
+    EXPECT_EQ(dut->CSR_NUM, 834);
+    EXPECT_EQ(dut->CSR_ZIMM, 0);
+
+    EXPECT_EQ(dut->inst.get_inst_name(), "CSRRW");
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("ACCESS_MEM"));
+    EXPECT_TRUE(dut->inst.ctrl_signal_map.at("UPDATE_REG"));
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("UPDATE_PC"));
+}
+
+TEST_F(TestDecode, Csrrs) {
+    dut->set_inst_code(0x342120F3);  // csrrs x1, 834, x2
+
+    EXPECT_EQ(dut->RS1_NUM, 2);
+    EXPECT_EQ(dut->RS2_NUM, 0);
+    EXPECT_EQ(dut->RD_NUM, 1);
+    EXPECT_EQ(dut->IMM, 0);
+
+    EXPECT_EQ(dut->CSR_NUM, 834);
+    EXPECT_EQ(dut->CSR_ZIMM, 0);
+
+    EXPECT_EQ(dut->inst.get_inst_name(), "CSRRS");
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("ACCESS_MEM"));
+    EXPECT_TRUE(dut->inst.ctrl_signal_map.at("UPDATE_REG"));
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("UPDATE_PC"));
+}
+
+TEST_F(TestDecode, Csrrc) {
+    dut->set_inst_code(0x342130F3);  // csrrc x1, 834, x2
+
+    EXPECT_EQ(dut->RS1_NUM, 2);
+    EXPECT_EQ(dut->RS2_NUM, 0);
+    EXPECT_EQ(dut->RD_NUM, 1);
+    EXPECT_EQ(dut->IMM, 0);
+
+    EXPECT_EQ(dut->CSR_NUM, 834);
+    EXPECT_EQ(dut->CSR_ZIMM, 0);
+
+    EXPECT_EQ(dut->inst.get_inst_name(), "CSRRC");
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("ACCESS_MEM"));
+    EXPECT_TRUE(dut->inst.ctrl_signal_map.at("UPDATE_REG"));
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("UPDATE_PC"));
+}
+
+TEST_F(TestDecode, Csrrwi) {
+    dut->set_inst_code(0x342150F3);  // csrrwi x1, 834, 2
+
+    EXPECT_EQ(dut->RS1_NUM, 0);
+    EXPECT_EQ(dut->RS2_NUM, 0);
+    EXPECT_EQ(dut->RD_NUM, 1);
+    EXPECT_EQ(dut->IMM, 0);
+
+    EXPECT_EQ(dut->CSR_NUM, 834);
+    EXPECT_EQ(dut->CSR_ZIMM, 2);
+
+    EXPECT_EQ(dut->inst.get_inst_name(), "CSRRWI");
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("ACCESS_MEM"));
+    EXPECT_TRUE(dut->inst.ctrl_signal_map.at("UPDATE_REG"));
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("UPDATE_PC"));
+}
+
+TEST_F(TestDecode, Csrrsi) {
+    dut->set_inst_code(0x342160F3);  // csrrsi x1, 834, 2
+
+    EXPECT_EQ(dut->RS1_NUM, 0);
+    EXPECT_EQ(dut->RS2_NUM, 0);
+    EXPECT_EQ(dut->RD_NUM, 1);
+    EXPECT_EQ(dut->IMM, 0);
+
+    EXPECT_EQ(dut->CSR_NUM, 834);
+    EXPECT_EQ(dut->CSR_ZIMM, 2);
+
+    EXPECT_EQ(dut->inst.get_inst_name(), "CSRRSI");
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("ACCESS_MEM"));
+    EXPECT_TRUE(dut->inst.ctrl_signal_map.at("UPDATE_REG"));
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("UPDATE_PC"));
+}
+
+TEST_F(TestDecode, Csrrci) {
+    dut->set_inst_code(0x342170F3);  // csrrci x1, 834, 2
+
+    EXPECT_EQ(dut->RS1_NUM, 0);
+    EXPECT_EQ(dut->RS2_NUM, 0);
+    EXPECT_EQ(dut->RD_NUM, 1);
+    EXPECT_EQ(dut->IMM, 0);
+
+    EXPECT_EQ(dut->CSR_NUM, 834);
+    EXPECT_EQ(dut->CSR_ZIMM, 2);
+
+    EXPECT_EQ(dut->inst.get_inst_name(), "CSRRCI");
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("ACCESS_MEM"));
+    EXPECT_TRUE(dut->inst.ctrl_signal_map.at("UPDATE_REG"));
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("UPDATE_PC"));
+}
+
+TEST_F(TestDecode, AddiNoRegUpdate) {
+    dut->set_inst_code(0x00000013);  // addi x0, x0, 0 (NOP)
+
+    EXPECT_EQ(dut->RS1_NUM, 0);
+    EXPECT_EQ(dut->RS2_NUM, 0);
+    EXPECT_EQ(dut->RD_NUM, 0);
+    EXPECT_EQ(dut->IMM, 0);
+
+    EXPECT_EQ(dut->inst.get_inst_name(), "ADDI");
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("ACCESS_MEM"));
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("UPDATE_REG"));
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("UPDATE_PC"));
+}
+
+TEST_F(TestDecode, AddiSignalTiming) {
+    dut->RST_N = 1;
+    dut->CLK = 0;
+    dut->READY = 1;
+    dut->INST_CODE = 0x02010413;  // addi x8, x2, 32
+    dut->eval();
+
+    EXPECT_EQ(dut->RS1_NUM, 2);
+    EXPECT_EQ(dut->RS2_NUM, 0);
+    EXPECT_EQ(dut->RD_NUM, 8);
+
+    // positive edge
+    dut->CLK = 1;
+    dut->eval();
+    std::memcpy(&dut->inst_bit, &dut->INST, sizeof(INST_BIT));
+    dut->inst.init(dut->inst_bit);
+
+    EXPECT_EQ(dut->IMM, 32);
+    EXPECT_EQ(dut->inst.get_inst_name(), "ADDI");
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("ACCESS_MEM"));
+    EXPECT_TRUE(dut->inst.ctrl_signal_map.at("UPDATE_REG"));
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("UPDATE_PC"));
+
+    // negative edge
+    dut->CLK = 0;
+    dut->READY = 0;
+    dut->eval();
+
+    EXPECT_EQ(dut->RS1_NUM, 0);
+    EXPECT_EQ(dut->RS2_NUM, 0);
+    EXPECT_EQ(dut->RD_NUM, 0);
+
+    // positive edge
+    dut->CLK = 1;
+    dut->eval();
+    std::memcpy(&dut->inst_bit, &dut->INST, sizeof(INST_BIT));
+    dut->inst.init(dut->inst_bit);
+
+    EXPECT_EQ(dut->IMM, 0);
+    EXPECT_EQ(dut->inst.get_inst_name(), "NOP");
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("ACCESS_MEM"));
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("UPDATE_REG"));
+    EXPECT_FALSE(dut->inst.ctrl_signal_map.at("UPDATE_PC"));
+}
+
 }  // namespace

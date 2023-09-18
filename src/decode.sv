@@ -27,6 +27,7 @@ module riscoffee_decode (
 
     // instruction type and immediate
     wire r_type, i_type, s_type, b_type, u_type, j_type;
+    wire csr_type, csr_i_type;
 
     assign r_type = INST_CODE[6:5] == 2'b01 && INST_CODE[4:2] == 3'b100;
     assign i_type = (INST_CODE[6:5] == 2'b00 && (INST_CODE[4:2] == 3'b000 || INST_CODE[4:2] == 3'b100)) || (INST_CODE[6:5] == 2'b11 && INST_CODE[4:2] == 3'b001);
@@ -34,19 +35,26 @@ module riscoffee_decode (
     assign b_type = INST_CODE[6:5] == 2'b11 && INST_CODE[4:2] == 3'b000;
     assign u_type = (INST_CODE[6:5] == 2'b00 || INST_CODE[6:5] == 2'b01) && INST_CODE[4:2] == 3'b101;
     assign j_type = INST_CODE[6:5] == 2'b11 && INST_CODE[4:2] == 3'b011;
+    // The following two types are classified as I-type but are treated as two different types for convenience.
+    assign csr_type = INST_CODE[6:5] == 2'b11 && INST_CODE[4:2] == 3'b100 && !INST_CODE[14];
+    assign csr_i_type = INST_CODE[6:5] == 2'b11 && INST_CODE[4:2] == 3'b100 && INST_CODE[14];
 
     always_ff @(posedge CLK) begin
         if (!RST_N) begin
             IMM <= 32'h0;
         end else if (READY) begin
             if (i_type) begin
-                IMM <= {{20{INST_CODE[31]}}, INST_CODE[31:20]};
+                if (funct3 == 3'b101 && INST_CODE[4:2] == 3'b100) begin
+                    IMM <= {27'b0, INST_CODE[24:20]};
+                end else begin
+                    IMM <= {{20{INST_CODE[31]}}, INST_CODE[31:20]};
+                end
             end else if (s_type) begin
                 IMM <= {{20{INST_CODE[31]}}, INST_CODE[31:25], INST_CODE[11:7]};
             end else if (b_type) begin
                 IMM <= {{19{INST_CODE[31]}}, INST_CODE[31], INST_CODE[7], INST_CODE[30:25], INST_CODE[11:8], 1'b0};
             end else if (u_type) begin
-                IMM <= {{12{INST_CODE[31]}}, INST_CODE[31:12]};
+                IMM <= {INST_CODE[31:12], 12'b0};
             end else if (j_type) begin
                 IMM <= {{11{INST_CODE[31]}}, INST_CODE[31], INST_CODE[19:12], INST_CODE[20], INST_CODE[30:21], 1'b0};
             end else begin
@@ -58,17 +66,17 @@ module riscoffee_decode (
     end
 
     // register number
-    assign RD_NUM  = READY & (r_type | i_type | u_type | j_type) ? INST_CODE[11:7] : 5'b0;
-    assign RS1_NUM = READY & (r_type | i_type | s_type | b_type) ? INST_CODE[19:15] : 5'b0;
+    assign RD_NUM  = READY & (r_type | i_type | u_type | j_type | csr_type | csr_i_type) ? INST_CODE[11:7] : 5'b0;
+    assign RS1_NUM = READY & (r_type | i_type | s_type | b_type | csr_type) ? INST_CODE[19:15] : 5'b0;
     assign RS2_NUM = READY & (r_type | s_type | b_type) ? INST_CODE[24:20] : 5'b0;
 
     // csr number
-    assign CSR_NUM = INST_CODE[31:20];
+    assign CSR_NUM = READY & (csr_type | csr_i_type) ? INST_CODE[31:20] : 12'b0;
     always_ff @(posedge CLK) begin
         if (!RST_N) begin
             CSR_ZIMM <= 5'b0;
         end else if (READY) begin
-            if (i_type && funct3 == 3'b001) begin
+            if (csr_i_type) begin
                 CSR_ZIMM <= INST_CODE[19:15];
             end else begin
                 CSR_ZIMM <= 5'b0;
@@ -141,7 +149,7 @@ module riscoffee_decode (
             // pipeline control
             INST.ACCESS_MEM <= INST_CODE[6:0] == 7'b0000011 /* LOAD */ || INST_CODE[6:0] == 7'b0100011 /* STORE */;
             INST.UPDATE_REG <= RD_NUM != 5'h0;
-            INST.UPDATE_PC  <= INST_CODE[6:0] == 7'b0010111 /* AUIPC */ || INST_CODE[6:0] == 7'b1101111 /* JAL */ || INST_CODE[6:0] == 7'b1100111 /* JALR */ || INST_CODE[6:0] == 7'b1100011 /* BRANCH */;
+            INST.UPDATE_PC  <= INST_CODE[6:0] == 7'b1101111 /* JAL */ || INST_CODE[6:0] == 7'b1100111 /* JALR */ || INST_CODE[6:0] == 7'b1100011 /* BRANCH */ || (INST_CODE[6:0] == 7'b1110011 && funct3 == 3'b000) /* ECALL and EBREAK */;
         end else begin
             INST <= 0;
         end
