@@ -35,7 +35,7 @@ add_executable(test_all
   test_inst.cpp
   test_decode.cpp
   test_core.cpp
-  test_all.cpp
+  main.cpp
 )
 target_link_libraries(
   test_all
