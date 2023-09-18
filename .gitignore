@@ -2,6 +2,8 @@
 .vscode/
 
 # verilator simulation files
-test/obj_dir/
 *.vcd
 *.gtkw
+
+# cmake build files
+build/
