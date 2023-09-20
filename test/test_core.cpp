@@ -8,7 +8,7 @@
 
 namespace {
 
-constexpr int TIME_MAX = 50000;
+constexpr int TIME_MAX = 100000;    // for fib(10) simulation
 const char* WAVEFORM_FILE = "simx.vcd";
 TEST(TestCore, ExportWaveform) {
     // Instantiate DUT

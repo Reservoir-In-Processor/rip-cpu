@@ -7,7 +7,9 @@
 // `include "alu.sv"
 // `include "ram.sv"
 
-module riscoffee_core (
+module riscoffee_core #(
+    parameter START_ADDR = 32'h00008000  // for fib(10) simulation
+) (
     input RST_N,
     input CLK
 );
@@ -27,7 +29,7 @@ module riscoffee_core (
     logic [31:0] pc_next;
 
     always_comb begin
-        if (ma_state.READY & (ex_inst.BEQ | ex_inst.BNE | ex_inst.BLT | ex_inst.BGE | ex_inst.BLTU | ex_inst.BGEU | ex_inst.JAL | ex_inst.JALR)) begin
+        if (ma_state.READY & ex_inst.UPDATE_PC) begin
             if (ex_inst.JALR) begin
                 pc_next = (ex_rs1 + ex_imm) & 32'hFFFFFFFE;
             end else if ((ex_inst.JAL | ex_inst.JALR) | (ex_alu_rslt[0] & (ex_inst.BEQ | ex_inst.BNE | ex_inst.BLT | ex_inst.BGE | ex_inst.BLTU | ex_inst.BGEU))) begin
@@ -43,9 +45,9 @@ module riscoffee_core (
     always_ff @(posedge CLK) begin
         if (!RST_N) begin
             pc_state <= 3'b100;
-            pc       <= 32'h0 - 32'h4;
+            pc       <= START_ADDR - 32'h4;
         end else begin
-            if (if_stall_by_mem) begin
+            if (if_stall_by_store) begin
                 pc_state <= 3'b010;
             end else begin
                 pc_state <= 3'b001;
@@ -64,15 +66,15 @@ module riscoffee_core (
     state if_state;
     logic [31:0] if_pc;
     wire [31:0] if_inst_code;
-    wire if_stall_by_mem;
+    wire if_stall_by_store;
 
     wire [4:0] if_rs1_num;
     wire [4:0] if_rs2_num;
     wire [4:0] if_rd_num;
     wire [11:0] if_csr_num;
 
-    assign if_inst_code    = ma_ram_dout;
-    assign if_stall_by_mem = ex_state.READY & de_inst.ACCESS_MEM;
+    assign if_inst_code      = !de_state.INVALID ? ma_ram_dout : 32'h0;
+    assign if_stall_by_store = ex_state.READY & (de_inst.SB | de_inst.SH | de_inst.SW);
 
     always_ff @(posedge CLK) begin
         if (!RST_N) begin
@@ -81,7 +83,7 @@ module riscoffee_core (
         end else begin
             if (pc_state.INVALID | ex_invalid_by_jmp) begin
                 if_state <= 3'b100;
-            end else if (if_stall_by_mem) begin
+            end else if (if_stall_by_store) begin
                 if_state <= 3'b010;
             end else begin
                 if_state <= 3'b001;
@@ -137,7 +139,7 @@ module riscoffee_core (
         if (ma_state.READY && ex_rd_num != 5'h0 && de_rs1_num == ex_rd_num) begin
             de_rs1 = ex_alu_rslt;
         end else if (wb_state.READY && ma_rd_num != 5'h0 && de_rs1_num == ma_rd_num) begin
-            de_rs1 = ma_alu_rslt;
+            de_rs1 = wb_wdata;
         end else begin
             de_rs1 = de_rs1_reg;
         end
@@ -145,7 +147,7 @@ module riscoffee_core (
         if (ma_state.READY && ex_rd_num != 5'h0 && de_rs2_num == ex_rd_num) begin
             de_rs2 = ex_alu_rslt;
         end else if (wb_state.READY && ma_rd_num != 5'h0 && de_rs2_num == ma_rd_num) begin
-            de_rs2 = ma_alu_rslt;
+            de_rs2 = wb_wdata;
         end else begin
             de_rs2 = de_rs2_reg;
         end
@@ -159,7 +161,7 @@ module riscoffee_core (
             de_rd_num  <= 5'h0;
             de_csr_num <= 12'h0;
         end else begin
-            if (if_state.INVALID | (de_state.READY & if_state.STALL) | ex_invalid_by_jmp) begin
+            if (if_state.INVALID | (!de_state.STALL & if_state.STALL) | ex_invalid_by_jmp) begin
                 de_state <= 3'b100;
             end else begin
                 de_state <= 3'b001;
@@ -270,7 +272,7 @@ module riscoffee_core (
             ma_rd_num   <= 5'h0;
             ma_csr_num  <= 12'h0;
         end else begin
-            if (ex_state.INVALID) begin
+            if (ex_state.INVALID | (!ma_state.STALL & ex_state.STALL)) begin
                 ma_state <= 3'b100;
             end else begin
                 ma_state <= 3'b001;
@@ -287,8 +289,9 @@ module riscoffee_core (
     end
 
     riscoffee_ram ram (
-        .CLK(CLK),
-        .WEN(ma_state.READY),
+        .CLK  (CLK),
+        .IF_EN(if_state.READY),
+        .MA_EN(ma_state.READY),
 
         .INST(ex_inst),
 
@@ -317,9 +320,9 @@ module riscoffee_core (
     wire wb_csr_clear;
     wire [11:0] csr_addr;
 
-    assign wb_wdata       = ma_alu_rslt;
+    assign wb_wdata       = (ma_inst.LB | ma_inst.LH | ma_inst.LW | ma_inst.LBU | ma_inst.LHU) ? ma_ram_dout : ma_alu_rslt;
     assign wb_csr_data_in = 32'h0;
-    assign wb_reg_wen     = wb_state.READY && (ma_rd_num != 5'h0);
+    assign wb_reg_wen     = wb_state.READY && ma_inst.UPDATE_REG;
     assign csr_addr       = ma_inst.CSRRW | ma_inst.CSRRS | ma_inst.CSRRC | ma_inst.CSRRWI | ma_inst.CSRRSI | ma_inst.CSRRCI ? ma_csr_num : if_csr_num;
 
     riscoffee_regfile regfile (

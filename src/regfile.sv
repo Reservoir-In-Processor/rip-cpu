@@ -20,7 +20,11 @@ module riscoffee_regfile (
     always_ff @(posedge CLK) begin
         if (!RST_N) begin
             for (int i = 0; i < 32; i = i + 1) begin
-                regfile[i] <= 0;
+                if (i == 2) begin   // sp; for fib(10) simulation
+                    regfile[i] <= 32'h8400;
+                end else begin
+                    regfile[i] <= 0;
+                end
             end
         end else begin
             for (int i = 1; i < 32; i = i + 1) begin

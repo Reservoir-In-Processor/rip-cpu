@@ -149,7 +149,7 @@ module riscoffee_decode (
             // pipeline control
             INST.ACCESS_MEM <= INST_CODE[6:0] == 7'b0000011 /* LOAD */ || INST_CODE[6:0] == 7'b0100011 /* STORE */;
             INST.UPDATE_REG <= RD_NUM != 5'h0;
-            INST.UPDATE_PC  <= INST_CODE[6:0] == 7'b1101111 /* JAL */ || INST_CODE[6:0] == 7'b1100111 /* JALR */ || INST_CODE[6:0] == 7'b1100011 /* BRANCH */ || (INST_CODE[6:0] == 7'b1110011 && funct3 == 3'b000) /* ECALL and EBREAK */;
+            INST.UPDATE_PC  <= INST_CODE[6:0] == 7'b1101111 /* JAL */ || INST_CODE[6:0] == 7'b1100111 /* JALR */ || INST_CODE[6:0] == 7'b1100011 /* BRANCH */ || (INST_CODE[6:0] == 7'b1110011 && funct3 == 3'b000) /* ECALL and EBREAK */ || INST_CODE[6:0] == 7'b0000011 /* LOAD; temporary implementation */;
         end else begin
             INST <= 0;
         end
