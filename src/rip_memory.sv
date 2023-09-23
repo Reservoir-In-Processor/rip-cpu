@@ -18,7 +18,8 @@ module rip_memory #(
     input wire [DATA_WIDTH-1:0] din_1,
     output wire [DATA_WIDTH-1:0] dout_1,
     output wire [DATA_WIDTH-1:0] dout_2,
-    output wire busy
+    output wire busy_1,
+    output wire busy_2
 );
     import rip_const::*;
 
