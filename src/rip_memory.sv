@@ -10,11 +10,11 @@ module rip_memory #(
     input wire clk,
     input wire rstn,
     input inst instruction,
-    input wire we,
+    input wire we_1,
     input wire re_1,
     input wire re_2,
     input wire [ADDR_WIDTH-1:0] addr_1,
-    input wire [DATA_WIDTH-1:0] din,
+    input wire [DATA_WIDTH-1:0] din_1,
     output wire [DATA_WIDTH-1:0] dout_1,
     output wire [DATA_WIDTH-1:0] dout_2,
     output wire busy
