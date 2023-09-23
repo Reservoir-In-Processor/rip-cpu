@@ -2,22 +2,22 @@
 `timescale 1ns / 1ps
 
 // 
-// memory module implementation for FPGA Block RAM
+// memory module implementation for FPGA Block RAM primitive
 // 
 
-// Module: dual_read_bram
+// Module: rip_2r1w_bram
 // Description: 2-read 1-write bram
-module dual_read_bram #(
+module rip_2r1w_bram #(
   parameter DATA_WIDTH = 32, // bram data width
   parameter ADDR_WIDTH = 10  // bram data depth
 ) (
   input wire clk,
-  input wire we,
+  input wire we_1,
   input wire enable_1,
   input wire enable_2,
   input wire [ADDR_WIDTH-1:0] addr_1,
   input wire [ADDR_WIDTH-1:0] addr_2,
-  input wire [DATA_WIDTH-1:0] din,
+  input wire [DATA_WIDTH-1:0] din_1,
   output reg [DATA_WIDTH-1:0] dout_1,
   output reg [DATA_WIDTH-1:0] dout_2
 );
@@ -27,8 +27,8 @@ module dual_read_bram #(
 
   always_ff @(posedge clk) begin
     if (enable_1) begin
-      if (we) begin
-        ram[addr_1] <= din;
+      if (we_1) begin
+        ram[addr_1] <= din_1;
       end
       dout_1 <= ram[addr_1];
     end
