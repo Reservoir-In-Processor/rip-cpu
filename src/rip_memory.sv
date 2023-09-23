@@ -14,6 +14,7 @@ module rip_memory #(
     input wire re_1,
     input wire re_2,
     input wire [ADDR_WIDTH-1:0] addr_1,
+    input wire [ADDR_WIDTH-1:0] addr_2,
     input wire [DATA_WIDTH-1:0] din_1,
     output wire [DATA_WIDTH-1:0] dout_1,
     output wire [DATA_WIDTH-1:0] dout_2,
