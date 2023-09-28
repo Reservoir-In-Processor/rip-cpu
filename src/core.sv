@@ -1,5 +1,4 @@
-`default_nettype none
-`timescale 1ns / 1ps
+`default_nettype none `timescale 1ns / 1ps
 
 // `include "decode.sv"
 // `include "regfile.sv"
@@ -47,7 +46,7 @@ module riscoffee_core #(
             pc_state <= 3'b100;
             pc       <= START_ADDR - 32'h4;
         end else begin
-            if (if_stall_by_store) begin
+            if (if_stall_by_store | ex_stall_by_load) begin
                 pc_state <= 3'b010;
             end else begin
                 pc_state <= 3'b001;
@@ -55,6 +54,8 @@ module riscoffee_core #(
 
             if (pc_state.READY) begin
                 pc <= pc_next;
+            end else if (!if_state.STALL) begin
+                pc <= START_ADDR - 32'h4;
             end
         end
     end
@@ -73,7 +74,7 @@ module riscoffee_core #(
     wire [4:0] if_rd_num;
     wire [11:0] if_csr_num;
 
-    assign if_inst_code      = !de_state.INVALID ? ma_ram_dout : 32'h0;
+    assign if_inst_code      = (if_state.READY | de_state.STALL) ? ma_ram_dout : 32'h0;
     assign if_stall_by_store = ex_state.READY & (de_inst.SB | de_inst.SH | de_inst.SW);
 
     always_ff @(posedge CLK) begin
@@ -91,6 +92,8 @@ module riscoffee_core #(
 
             if (if_state.READY) begin
                 if_pc <= pc;
+            end else if (!de_state.STALL) begin
+                if_pc <= 32'h0;
             end
         end
     end
@@ -118,16 +121,22 @@ module riscoffee_core #(
 
     riscoffee_decode decode (
         .RST_N(RST_N),
-        .CLK  (CLK),
-        .READY(de_state.READY),
+        .CLK(CLK),
+        .DE_READY(de_state.READY),
+        .EX_STALL(de_state.STALL),
 
         .INST_CODE(if_inst_code),
 
-        .RS1_NUM(if_rs1_num),
-        .RS2_NUM(if_rs2_num),
-        .RD_NUM (if_rd_num),
+        .IF_RS1_NUM(if_rs1_num),
+        .IF_RS2_NUM(if_rs2_num),
+        .IF_RD_NUM (if_rd_num),
+        .IF_CSR_NUM(if_csr_num),
 
-        .CSR_NUM (if_csr_num),
+        .DE_RS1_NUM(de_rs1_num),
+        .DE_RS2_NUM(de_rs2_num),
+        .DE_RD_NUM (de_rd_num),
+        .DE_CSR_NUM(de_csr_num),
+
         .CSR_ZIMM(de_csr_zimm),
 
         .IMM(de_imm),
@@ -163,17 +172,16 @@ module riscoffee_core #(
         end else begin
             if (if_state.INVALID | (!de_state.STALL & if_state.STALL) | ex_invalid_by_jmp) begin
                 de_state <= 3'b100;
+            end else if (ex_stall_by_load) begin
+                de_state <= 3'b010;
             end else begin
                 de_state <= 3'b001;
             end
 
             if (de_state.READY) begin
-                de_pc      <= if_pc;
-
-                de_rs1_num <= if_rs1_num;
-                de_rs2_num <= if_rs2_num;
-                de_rd_num  <= if_rd_num;
-                de_csr_num <= if_csr_num;
+                de_pc <= if_pc;
+            end else if (!ex_state.STALL) begin
+                de_pc <= 32'h0;
             end
         end
     end
@@ -185,6 +193,7 @@ module riscoffee_core #(
     state ex_state;
     logic [31:0] ex_pc;
     inst ex_inst;
+    wire ex_stall_by_load;
     wire ex_invalid_by_jmp;
 
     logic [4:0] ex_rd_num;
@@ -213,6 +222,7 @@ module riscoffee_core #(
         .RSLT(ex_alu_rslt)
     );
 
+    assign ex_stall_by_load = ex_state.READY & (de_inst.LB | de_inst.LH | de_inst.LW | de_inst.LBU | de_inst.LHU) & if_state.READY & (de_rs1_num == if_rd_num | de_rs2_num == if_rd_num);
     assign ex_invalid_by_jmp = ex_state.READY & de_inst.UPDATE_PC;
 
     always_ff @(posedge CLK) begin
@@ -232,6 +242,8 @@ module riscoffee_core #(
         end else begin
             if (de_state.INVALID | ex_invalid_by_jmp) begin
                 ex_state <= 3'b100;
+            end else if (ex_stall_by_load) begin
+                ex_state <= 3'b010;
             end else begin
                 ex_state <= 3'b001;
             end
@@ -249,6 +261,19 @@ module riscoffee_core #(
 
                 ex_rd_num   <= de_rd_num;
                 ex_csr_num  <= de_csr_num;
+            end else if (!ma_state.STALL) begin
+                ex_inst     <= 0;
+                ex_pc       <= 32'h0;
+
+                ex_rs1      <= 32'h0;
+                ex_rs2      <= 32'h0;
+                ex_imm      <= 32'h0;
+
+                ex_csr_zimm <= 5'h0;
+                ex_csr      <= 32'h0;
+
+                ex_rd_num   <= 5'h0;
+                ex_csr_num  <= 12'h0;
             end
         end
     end
@@ -284,6 +309,12 @@ module riscoffee_core #(
 
                 ma_rd_num   <= ex_rd_num;
                 ma_csr_num  <= ex_csr_num;
+            end else if (!wb_state.STALL) begin
+                ma_inst     <= 0;
+                ma_alu_rslt <= 32'h0;
+
+                ma_rd_num   <= 5'h0;
+                ma_csr_num  <= 12'h0;
             end
         end
     end
@@ -363,4 +394,64 @@ module riscoffee_core #(
             end
         end
     end
+
+`ifdef VERILATOR
+    integer file_handle, t;
+    logic after_wb_ready;
+    inst wb_inst;
+    logic [31:0] de_inst_code, ex_inst_code, ma_inst_code, wb_inst_code;
+
+    initial begin
+        file_handle = $fopen("dump.txt");
+        t = 0;
+    end
+
+    always_ff @(posedge CLK) begin
+        assert (!(pc_state.READY & if_state.STALL));
+        assert (!(if_state.READY & de_state.STALL));
+        assert (!(de_state.READY & ex_state.STALL));
+        assert (!(ex_state.READY & ma_state.STALL));
+        assert (!(ma_state.READY & wb_state.STALL));
+    end
+
+    always_ff @(posedge CLK) begin
+        t = t + 10;
+
+        if (!RST_N) begin
+            after_wb_ready <= 1'b0;
+            de_inst_code   <= 32'h0;
+            ex_inst_code   <= 32'h0;
+            ma_inst_code   <= 32'h0;
+            wb_inst_code   <= 32'h0;
+        end else begin
+            after_wb_ready <= wb_state.READY;
+            if (de_state.READY) de_inst_code <= if_inst_code;
+            if (ex_state.READY) ex_inst_code <= de_inst_code;
+            if (ma_state.READY) ma_inst_code <= ex_inst_code;
+            if (wb_state.READY) begin
+                wb_inst      <= ma_inst;
+                wb_inst_code <= ma_inst_code;
+            end
+        end
+
+        if (after_wb_ready) begin
+            $fdisplay(file_handle, "Inst: (%d ps)\n???  := %b(BIN) = %X (HEX LE)", t, wb_inst_code, wb_inst_code);
+            $fdisplay(file_handle, "Regs after:");
+            $fdisplay(file_handle, "x0 (zero):= %X, x1 ( ra ):= %X, x2 ( sp ):= %X, x3 ( gp ):= %X, ", regfile.regfile[0], regfile.regfile[1], regfile.regfile[2], regfile.regfile[3]);
+            $fdisplay(file_handle, "x4 ( tp ):= %X, x5 ( t0 ):= %X, x6 ( t1 ):= %X, x7 ( t2 ):= %X, ", regfile.regfile[4], regfile.regfile[5], regfile.regfile[6], regfile.regfile[7]);
+            $fdisplay(file_handle, "x8 ( s0 ):= %X, x9 ( s1 ):= %X, xa ( a0 ):= %X, xb ( a1 ):= %X, ", regfile.regfile[8], regfile.regfile[9], regfile.regfile[10], regfile.regfile[11]);
+            $fdisplay(file_handle, "xc ( a2 ):= %X, xd ( a3 ):= %X, xe ( a4 ):= %X, xf ( a5 ):= %X, ", regfile.regfile[12], regfile.regfile[13], regfile.regfile[14], regfile.regfile[15]);
+            $fdisplay(file_handle, "x10( a6 ):= %X, x11( a7 ):= %X, x12( s2 ):= %X, x13( s3 ):= %X, ", regfile.regfile[16], regfile.regfile[17], regfile.regfile[18], regfile.regfile[19]);
+            $fdisplay(file_handle, "x14( s4 ):= %X, x15( s5 ):= %X, x16( s6 ):= %X, x17( s7 ):= %X, ", regfile.regfile[20], regfile.regfile[21], regfile.regfile[22], regfile.regfile[23]);
+            $fdisplay(file_handle, "x18( s8 ):= %X, x19( s9 ):= %X, x1a( s10):= %X, x1b( s11):= %X, ", regfile.regfile[24], regfile.regfile[25], regfile.regfile[26], regfile.regfile[27]);
+            $fdisplay(file_handle, "x1c( t3 ):= %X, x1d( t4 ):= %X, x1e( t5 ):= %X, x1f( t6 ):= %X,\n", regfile.regfile[28], regfile.regfile[29], regfile.regfile[30], regfile.regfile[31]);
+
+            // finish simulation when invalid instruction is executed
+            if (wb_state.READY & !|wb_inst) begin
+                $fclose(file_handle);
+                $finish;
+            end
+        end
+    end
+`endif
 endmodule
