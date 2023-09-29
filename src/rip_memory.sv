@@ -27,7 +27,6 @@ module rip_memory #(
 );
     import rip_const::*;
 
-    integer i;
     reg [DATA_WIDTH-1:0] mem_block[(1<<ADDR_WIDTH)-1:0];
 
     logic [ADDR_WIDTH-1:0] if_mem_addr;
@@ -59,7 +58,7 @@ module rip_memory #(
         ex_mem_addr   = ex_addr[ADDR_WIDTH+1:2];
         ex_mem_offset = ex_addr[1:0];
 
-        for (i = 0; i < NUM_COL; i = i + 1) begin
+        for (integer i = 0; i < NUM_COL; i = i + 1) begin
             ex_mem_we[i] = ma_ready & ((ex_inst.SB && ex_mem_offset == i[1:0]) | (ex_inst.SH && ex_mem_offset[1] == i[1]) | ex_inst.SW);
         end
 
@@ -92,7 +91,7 @@ module rip_memory #(
 
     always_ff @(posedge clk) begin
         if (ma_ready) begin
-            for (i = 0; i < NUM_COL; i = i + 1) begin
+            for (integer i = 0; i < NUM_COL; i = i + 1) begin
                 if (ex_mem_we[i]) begin
                     mem_block[ex_mem_addr][i*COL_WIDTH+:COL_WIDTH] <= ex_mem_wdata[i*COL_WIDTH+:COL_WIDTH];
                 end
