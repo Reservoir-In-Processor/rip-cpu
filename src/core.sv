@@ -1,4 +1,5 @@
-`default_nettype none `timescale 1ns / 1ps
+`default_nettype none
+`timescale 1ns / 1ps
 
 // `include "decode.sv"
 // `include "regfile.sv"
@@ -46,7 +47,7 @@ module riscoffee_core #(
             pc_state <= 3'b100;
             pc       <= START_ADDR - 32'h4;
         end else begin
-            if (if_stall_by_store | ex_stall_by_load) begin
+            if (ex_stall_by_load) begin
                 pc_state <= 3'b010;
             end else begin
                 pc_state <= 3'b001;
@@ -67,15 +68,15 @@ module riscoffee_core #(
     state if_state;
     logic [31:0] if_pc;
     wire [31:0] if_inst_code;
-    wire if_stall_by_store;
 
     wire [4:0] if_rs1_num;
     wire [4:0] if_rs2_num;
     wire [4:0] if_rd_num;
     wire [11:0] if_csr_num;
 
-    assign if_inst_code      = (if_state.READY | de_state.STALL) ? ma_ram_dout : 32'h0;
-    assign if_stall_by_store = ex_state.READY & (de_inst.SB | de_inst.SH | de_inst.SW);
+    wire [31:0] if_dout;
+
+    assign if_inst_code      = (de_state.READY & !ex_state.STALL) ? if_dout : 32'h0;
 
     always_ff @(posedge CLK) begin
         if (!RST_N) begin
@@ -84,7 +85,7 @@ module riscoffee_core #(
         end else begin
             if (pc_state.INVALID | ex_invalid_by_jmp) begin
                 if_state <= 3'b100;
-            end else if (if_stall_by_store) begin
+            end else if (ex_stall_by_load) begin
                 if_state <= 3'b010;
             end else begin
                 if_state <= 3'b001;
@@ -222,7 +223,7 @@ module riscoffee_core #(
         .RSLT(ex_alu_rslt)
     );
 
-    assign ex_stall_by_load = ex_state.READY & (de_inst.LB | de_inst.LH | de_inst.LW | de_inst.LBU | de_inst.LHU) & if_state.READY & (de_rs1_num == if_rd_num | de_rs2_num == if_rd_num);
+    assign ex_stall_by_load  = ex_state.READY & (de_inst.LB | de_inst.LH | de_inst.LW | de_inst.LBU | de_inst.LHU) & de_state.READY & (de_rd_num == if_rs1_num | de_rd_num == if_rs2_num);
     assign ex_invalid_by_jmp = ex_state.READY & de_inst.UPDATE_PC;
 
     always_ff @(posedge CLK) begin
@@ -319,17 +320,18 @@ module riscoffee_core #(
         end
     end
 
-    riscoffee_ram ram (
-        .CLK  (CLK),
-        .IF_EN(if_state.READY),
-        .MA_EN(ma_state.READY),
+    rip_memory memory (
+        .clk(CLK),
 
-        .INST(ex_inst),
+        .if_ready(if_state.READY),
+        .pc(pc),
+        .if_dout(if_dout),
 
-        .PC  (pc),
-        .ADDR(ex_alu_rslt),
-        .DIN (ex_rs2),
-        .DOUT(ma_ram_dout)
+        .ma_ready(ma_state.READY),
+        .ex_inst (ex_inst),
+        .ex_addr (ex_alu_rslt),
+        .ex_din  (ex_rs2),
+        .ma_dout (ma_ram_dout)
     );
 
     /* -------------------------------- *
@@ -398,12 +400,12 @@ module riscoffee_core #(
 `ifdef VERILATOR
     integer file_handle, t;
     logic after_wb_ready;
-    inst wb_inst;
+    inst  wb_inst;
     logic [31:0] de_inst_code, ex_inst_code, ma_inst_code, wb_inst_code;
 
     initial begin
         file_handle = $fopen("dump.txt");
-        t = 0;
+        t           = 0;
     end
 
     always_ff @(posedge CLK) begin

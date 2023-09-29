@@ -4,6 +4,7 @@
 # verilator simulation files
 *.vcd
 *.gtkw
+dump.*
 
 # cmake build files
 build/

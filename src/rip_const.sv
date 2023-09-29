@@ -1,6 +1,9 @@
 `ifndef RIP_CONST
 `define RIP_CONST
 
+`default_nettype none
+`timescale 1ns / 1ps
+
 // define constant (not supposed to be changed) values
 package rip_const;
 

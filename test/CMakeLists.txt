@@ -60,11 +60,12 @@ verilate(test_all
   INCLUDE_DIRS "../src"
   SOURCES
     ../src/instructions.svh
+    ../src/rip_const.sv
     ../src/alu.sv
     ../src/regfile.sv
     ../src/csr.sv
     ../src/pc.sv
-    ../src/ram.sv
+    ../src/rip_memory.sv
     ../src/decode.sv
     ../src/core.sv
   TOP_MODULE riscoffee_core
