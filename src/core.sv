@@ -402,10 +402,12 @@ module riscoffee_core #(
     logic after_wb_ready;
     inst  wb_inst;
     logic [31:0] de_inst_code, ex_inst_code, ma_inst_code, wb_inst_code;
+    logic finished;
 
     initial begin
         file_handle = $fopen("dump.txt");
         t           = 0;
+        finished    = 1'b0;
     end
 
     always_ff @(posedge CLK) begin
@@ -436,7 +438,7 @@ module riscoffee_core #(
             end
         end
 
-        if (after_wb_ready) begin
+        if (after_wb_ready & !finished) begin
             $fdisplay(file_handle, "Inst: (%d ps)\n???  := %b(BIN) = %X (HEX LE)", t, wb_inst_code, wb_inst_code);
             $fdisplay(file_handle, "Regs after:");
             $fdisplay(file_handle, "x0 (zero):= %X, x1 ( ra ):= %X, x2 ( sp ):= %X, x3 ( gp ):= %X, ", regfile.regfile[0], regfile.regfile[1], regfile.regfile[2], regfile.regfile[3]);
@@ -451,7 +453,7 @@ module riscoffee_core #(
             // finish simulation when invalid instruction is executed
             if (wb_state.READY & !|wb_inst) begin
                 $fclose(file_handle);
-                $finish;
+                finished <= 1'b1;
             end
         end
     end

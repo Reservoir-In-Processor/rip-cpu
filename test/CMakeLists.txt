@@ -43,6 +43,13 @@ target_link_libraries(
   GTest::gtest_main
 )
 
+set_target_properties(test_all PROPERTIES
+  CXX_STANDARD 17
+  CXX_STANDARD_REQUIRED ON
+  COMPILE_FLAGS "-Wall -g -fsanitize=address,undefined"
+  LINK_FLAGS "-fsanitize=address,undefined"
+)
+
 include(GoogleTest)
 gtest_discover_tests(test_all)
 
