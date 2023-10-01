@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(RISCoffee_test)
+project(rip_test)
 
 ####################
 # Verilator
@@ -57,8 +57,8 @@ gtest_discover_tests(test_all)
 verilate(test_all
   INCLUDE_DIRS "../src"
   SOURCES
-  ../src/instructions.svh
-  ../src/decode.sv
+  ../src/rip_inst.svh
+  ../src/rip_decode.sv
   PREFIX Vdecode
 )
 
@@ -66,15 +66,15 @@ verilate(test_all
 verilate(test_all
   INCLUDE_DIRS "../src"
   SOURCES
-    ../src/instructions.svh
-    ../src/rip_const.sv
-    ../src/alu.sv
-    ../src/regfile.sv
-    ../src/csr.sv
+    ../src/rip_inst.svh
+    ../src/rip_const.svh
+    ../src/rip_alu.sv
+    ../src/rip_regfile.sv
+    ../src/rip_csr.sv
     ../src/rip_memory.sv
-    ../src/decode.sv
-    ../src/core.sv
-  TOP_MODULE riscoffee_core
+    ../src/rip_decode.sv
+    ../src/rip_core.sv
+  TOP_MODULE rip_core
   PREFIX Vcore
   VERILATOR_ARGS
     --trace

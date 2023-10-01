@@ -9,7 +9,9 @@ class VdecodeForTest : public Vdecode {
     VdecodeForTest() : Vdecode() {}
     ~VdecodeForTest() {}
 
-    INST_BIT inst_bit;
-    Inst inst;
-    void set_inst_code(uint32_t inst_code);
+    Inst _inst;
+    inst_bit_t _inst_bit;
+    void set_inst_code(uint32_t);
+    std::string get_inst_name();
+    bool get_ctrl_signal(std::string);
 };
