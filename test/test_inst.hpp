@@ -58,20 +58,20 @@ typedef struct {
     bool JAL : 1;
     bool AUIPC : 1;
     bool LUI : 1;
-} __attribute__((packed)) INST_BIT;
+} __attribute__((packed)) inst_bit_t;
 
 class Inst {
    private:
-    INST_BIT inst_bit;
-    std::map<std::string, bool> inst_map;
+    inst_bit_t _inst_bit;
+    std::map<std::string, bool> _inst_map;
 
    public:
     Inst();
-    Inst(const INST_BIT&);
+    Inst(const inst_bit_t&);
     ~Inst();
 
     std::map<std::string, bool> ctrl_signal_map;
-    void init(const INST_BIT&);
+    void init(const inst_bit_t&);
     std::string get_inst_name();
 };
 

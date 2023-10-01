@@ -52,4 +52,4 @@ typedef struct packed {
     logic ACCESS_MEM;
     logic UPDATE_REG;
     logic UPDATE_PC;
-} inst;
+} inst_t;

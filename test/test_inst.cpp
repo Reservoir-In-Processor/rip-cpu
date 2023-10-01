@@ -5,55 +5,55 @@
 #include <cstring>
 
 Inst::Inst() {}
-Inst::Inst(const INST_BIT& _inst_bit) { init(_inst_bit); }
+Inst::Inst(const inst_bit_t& inst_bit) { init(inst_bit); }
 
 Inst::~Inst() {}
 
-void Inst::init(const INST_BIT& _inst_bit) {
-    inst_bit = _inst_bit;
+void Inst::init(const inst_bit_t& inst_bit) {
+    std::memcpy(&_inst_bit, &inst_bit, sizeof(inst_bit_t));
     ctrl_signal_map = {
         // pipeline control signals
-        {"UPDATE_PC", (bool)inst_bit.UPDATE_PC},
-        {"UPDATE_REG", (bool)inst_bit.UPDATE_REG},
-        {"ACCESS_MEM", (bool)inst_bit.ACCESS_MEM},
+        {"UPDATE_PC", (bool)_inst_bit.UPDATE_PC},
+        {"UPDATE_REG", (bool)_inst_bit.UPDATE_REG},
+        {"ACCESS_MEM", (bool)_inst_bit.ACCESS_MEM},
     };
-    inst_map = {
+    _inst_map = {
         // RV32I
-        {"CSRRCI", (bool)inst_bit.CSRRCI},   {"CSRRSI", (bool)inst_bit.CSRRSI},
-        {"CSRRWI", (bool)inst_bit.CSRRWI},   {"CSRRC", (bool)inst_bit.CSRRC},
-        {"CSRRS", (bool)inst_bit.CSRRS},     {"CSRRW", (bool)inst_bit.CSRRW},
-        {"EBREAK", (bool)inst_bit.EBREAK},   {"ECALL", (bool)inst_bit.ECALL},
-        {"FENCE_I", (bool)inst_bit.FENCE_I}, {"FENCE", (bool)inst_bit.FENCE},
-        {"AND", (bool)inst_bit.AND},         {"OR", (bool)inst_bit.OR},
-        {"SRA", (bool)inst_bit.SRA},         {"SRL", (bool)inst_bit.SRL},
-        {"XOR", (bool)inst_bit.XOR},         {"SLTU", (bool)inst_bit.SLTU},
-        {"SLT", (bool)inst_bit.SLT},         {"SLL", (bool)inst_bit.SLL},
-        {"SUB", (bool)inst_bit.SUB},         {"ADD", (bool)inst_bit.ADD},
-        {"SRAI", (bool)inst_bit.SRAI},       {"SRLI", (bool)inst_bit.SRLI},
-        {"SLLI", (bool)inst_bit.SLLI},       {"ANDI", (bool)inst_bit.ANDI},
-        {"ORI", (bool)inst_bit.ORI},         {"XORI", (bool)inst_bit.XORI},
-        {"SLTIU", (bool)inst_bit.SLTIU},     {"SLTI", (bool)inst_bit.SLTI},
-        {"ADDI", (bool)inst_bit.ADDI},       {"SW", (bool)inst_bit.SW},
-        {"SH", (bool)inst_bit.SH},           {"SB", (bool)inst_bit.SB},
-        {"LHU", (bool)inst_bit.LHU},         {"LBU", (bool)inst_bit.LBU},
-        {"LW", (bool)inst_bit.LW},           {"LH", (bool)inst_bit.LH},
-        {"LB", (bool)inst_bit.LB},           {"BGEU", (bool)inst_bit.BGEU},
-        {"BLTU", (bool)inst_bit.BLTU},       {"BGE", (bool)inst_bit.BGE},
-        {"BLT", (bool)inst_bit.BLT},         {"BNE", (bool)inst_bit.BNE},
-        {"BEQ", (bool)inst_bit.BEQ},         {"JALR", (bool)inst_bit.JALR},
-        {"JAL", (bool)inst_bit.JAL},         {"AUIPC", (bool)inst_bit.AUIPC},
-        {"LUI", (bool)inst_bit.LUI},
+        {"CSRRCI", (bool)_inst_bit.CSRRCI},   {"CSRRSI", (bool)_inst_bit.CSRRSI},
+        {"CSRRWI", (bool)_inst_bit.CSRRWI},   {"CSRRC", (bool)_inst_bit.CSRRC},
+        {"CSRRS", (bool)_inst_bit.CSRRS},     {"CSRRW", (bool)_inst_bit.CSRRW},
+        {"EBREAK", (bool)_inst_bit.EBREAK},   {"ECALL", (bool)_inst_bit.ECALL},
+        {"FENCE_I", (bool)_inst_bit.FENCE_I}, {"FENCE", (bool)_inst_bit.FENCE},
+        {"AND", (bool)_inst_bit.AND},         {"OR", (bool)_inst_bit.OR},
+        {"SRA", (bool)_inst_bit.SRA},         {"SRL", (bool)_inst_bit.SRL},
+        {"XOR", (bool)_inst_bit.XOR},         {"SLTU", (bool)_inst_bit.SLTU},
+        {"SLT", (bool)_inst_bit.SLT},         {"SLL", (bool)_inst_bit.SLL},
+        {"SUB", (bool)_inst_bit.SUB},         {"ADD", (bool)_inst_bit.ADD},
+        {"SRAI", (bool)_inst_bit.SRAI},       {"SRLI", (bool)_inst_bit.SRLI},
+        {"SLLI", (bool)_inst_bit.SLLI},       {"ANDI", (bool)_inst_bit.ANDI},
+        {"ORI", (bool)_inst_bit.ORI},         {"XORI", (bool)_inst_bit.XORI},
+        {"SLTIU", (bool)_inst_bit.SLTIU},     {"SLTI", (bool)_inst_bit.SLTI},
+        {"ADDI", (bool)_inst_bit.ADDI},       {"SW", (bool)_inst_bit.SW},
+        {"SH", (bool)_inst_bit.SH},           {"SB", (bool)_inst_bit.SB},
+        {"LHU", (bool)_inst_bit.LHU},         {"LBU", (bool)_inst_bit.LBU},
+        {"LW", (bool)_inst_bit.LW},           {"LH", (bool)_inst_bit.LH},
+        {"LB", (bool)_inst_bit.LB},           {"BGEU", (bool)_inst_bit.BGEU},
+        {"BLTU", (bool)_inst_bit.BLTU},       {"BGE", (bool)_inst_bit.BGE},
+        {"BLT", (bool)_inst_bit.BLT},         {"BNE", (bool)_inst_bit.BNE},
+        {"BEQ", (bool)_inst_bit.BEQ},         {"JALR", (bool)_inst_bit.JALR},
+        {"JAL", (bool)_inst_bit.JAL},         {"AUIPC", (bool)_inst_bit.AUIPC},
+        {"LUI", (bool)_inst_bit.LUI},
     };
 }
 
 std::string Inst::get_inst_name() {
     std::string inst_name = "NOP";
-    for (auto itr = inst_map.begin(); itr != inst_map.end(); ++itr) {
-        if (itr->second) {
+    for (const auto& [op_name, is_active] : _inst_map) {
+        if (is_active) {
             if (inst_name == "NOP") {
-                inst_name = itr->first;
+                inst_name = op_name;
             } else {
-                inst_name += " " + itr->first;
+                inst_name += " " + op_name;
             }
         }
     }

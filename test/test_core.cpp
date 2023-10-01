@@ -22,16 +22,16 @@ TEST(TestCore, ExportWaveform) {
     tfp->open(WAVEFORM_FILE);
 
     // Format
-    dut->RST_N = 0;
-    dut->CLK = 0;
+    dut->rst_n = 0;
+    dut->clk = 0;
 
     for (int time_counter = 0; time_counter < TIME_MAX; time_counter++) {
         if (time_counter == 100) {
-            dut->RST_N = 1;
+            dut->rst_n = 1;
         }
 
         if ((time_counter % 5) == 0) {
-            dut->CLK = !dut->CLK;  // Toggle clock
+            dut->clk = !dut->clk;  // Toggle clock
         }
 
         // Evaluate DUT
