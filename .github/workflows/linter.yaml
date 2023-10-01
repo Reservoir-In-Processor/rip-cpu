@@ -1,0 +1,14 @@
+name: Linter
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: hdlc/verible
+    steps:
+      - uses: actions/checkout@v3
+      - name: Lint
+        run: |
+          cd src
+          verible-verilog-lint -rules=-always-ff-non-blocking,signal-name-style,parameter-name-style=localparam_style:ALL_CAPS *
