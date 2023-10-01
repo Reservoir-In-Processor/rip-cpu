@@ -71,7 +71,6 @@ verilate(test_all
     ../src/alu.sv
     ../src/regfile.sv
     ../src/csr.sv
-    ../src/pc.sv
     ../src/rip_memory.sv
     ../src/decode.sv
     ../src/core.sv
