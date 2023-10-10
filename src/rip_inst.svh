@@ -51,5 +51,6 @@ typedef struct packed {
     // pipeline control signals
     logic ACCESS_MEM;
     logic UPDATE_REG;
+    logic UPDATE_CSR;
     logic UPDATE_PC;
 } inst_t;

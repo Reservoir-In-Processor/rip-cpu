@@ -1,11 +1,10 @@
-`default_nettype none
-`timescale 1ns / 1ps
+`default_nettype none `timescale 1ns / 1ps
 
-// `include "decode.sv"
-// `include "regfile.sv"
-// `include "csr.sv"
-// `include "alu.sv"
-// `include "ram.sv"
+// `include "rip_decode.sv"
+// `include "rip_regfile.sv"
+// `include "rip_csr.sv"
+// `include "rip_alu.sv"
+// `include "rip_memory.sv"
 
 module rip_core #(
     parameter int START_ADDR = 32'h00008000  // for fib(10) simulation
@@ -130,7 +129,8 @@ module rip_core #(
     logic [31:0] de_rs2;
     wire [31:0] de_imm;
     wire [4:0] de_csr_zimm;
-    wire [31:0] de_csr;
+    wire [31:0] de_csr_reg;
+    logic [31:0] de_csr;
 
     rip_decode decode (
         .rst_n(rst_n),
@@ -157,25 +157,43 @@ module rip_core #(
         .inst(de_inst)
     );
 
+    // forwarding register
     always_comb begin
-        if (ma_state.READY && ex_rd_num != 5'h0 && de_rs1_num == ex_rd_num) begin
+        if (ma_state.READY && !ex_inst.UPDATE_CSR && ex_rd_num != 5'h0 &&
+            de_rs1_num == ex_rd_num) begin
             de_rs1 = ex_alu_rslt;
         end
-        else if (wb_state.READY && ma_rd_num != 5'h0 && de_rs1_num == ma_rd_num) begin
-            de_rs1 = wb_wdata;
+        else if (wb_state.READY && !ma_inst.UPDATE_CSR && ma_rd_num != 5'h0 &&
+                 de_rs1_num == ma_rd_num) begin
+            de_rs1 = ma_wdata;
         end
         else begin
             de_rs1 = de_rs1_reg;
         end
 
-        if (ma_state.READY && ex_rd_num != 5'h0 && de_rs2_num == ex_rd_num) begin
+        if (ma_state.READY && !ex_inst.UPDATE_CSR && ex_rd_num != 5'h0 &&
+            de_rs2_num == ex_rd_num) begin
             de_rs2 = ex_alu_rslt;
         end
-        else if (wb_state.READY && ma_rd_num != 5'h0 && de_rs2_num == ma_rd_num) begin
-            de_rs2 = wb_wdata;
+        else if (wb_state.READY && !ma_inst.UPDATE_CSR && ma_rd_num != 5'h0 &&
+                 de_rs2_num == ma_rd_num) begin
+            de_rs2 = ma_wdata;
         end
         else begin
             de_rs2 = de_rs2_reg;
+        end
+    end
+
+    // forwarding csr register
+    always_comb begin
+        if (ma_state.READY && ex_inst.UPDATE_CSR) begin
+            de_csr = ex_alu_rslt;
+        end
+        else if (wb_state.READY && ma_inst.UPDATE_CSR) begin
+            de_csr = ma_alu_rslt;
+        end
+        else begin
+            de_csr = de_csr_reg;
         end
     end
 
@@ -235,10 +253,12 @@ module rip_core #(
 
         .inst(de_inst),
 
-        .rs1(de_rs1),
-        .rs2(de_rs2),
-        .pc (de_pc),
-        .imm(de_imm),
+        .rs1 (de_rs1),
+        .rs2 (de_rs2),
+        .pc  (de_pc),
+        .csr (de_csr),
+        .imm (de_imm),
+        .zimm(de_csr_zimm),
 
         .rslt(ex_alu_rslt)
     );
@@ -313,6 +333,9 @@ module rip_core #(
     inst_t ma_inst;
 
     logic [31:0] ma_alu_rslt;
+    logic [4:0] ma_rd_num;
+    logic [11:0] ma_csr_num;
+    logic [31:0] ma_csr;
 
     wire [31:0] ma_ram_dout;
 
@@ -323,6 +346,7 @@ module rip_core #(
 
             ma_rd_num   <= 5'h0;
             ma_csr_num  <= 12'h0;
+            ma_csr      <= 32'h0;
         end
         else begin
             if (ex_state.INVALID | (!ma_state.STALL & ex_state.STALL)) begin
@@ -338,6 +362,7 @@ module rip_core #(
 
                 ma_rd_num   <= ex_rd_num;
                 ma_csr_num  <= ex_csr_num;
+                ma_csr      <= ex_csr;
             end
             else if (!wb_state.STALL) begin
                 ma_inst     <= 0;
@@ -345,6 +370,7 @@ module rip_core #(
 
                 ma_rd_num   <= 5'h0;
                 ma_csr_num  <= 12'h0;
+                ma_csr      <= 32'h0;
             end
         end
     end
@@ -369,33 +395,31 @@ module rip_core #(
 
     state_t wb_state;
 
-    logic [4:0] ma_rd_num;
-    logic [11:0] ma_csr_num;
+    wire ma_reg_wen;
+    wire ma_csr_wen;
+    logic [31:0] ma_wdata;
 
-    wire [31:0] wb_wdata;
-    wire [31:0] wb_csr_din;
-    wire [31:0] wb_csr_dout;
-
-    wire wb_reg_wen;
-    wire wb_csr_write;
-    wire wb_csr_set;
-    wire wb_csr_clear;
-    wire [11:0] csr_addr;
-
-    assign wb_wdata = (ma_inst.LB | ma_inst.LH | ma_inst.LW | ma_inst.LBU | ma_inst.LHU) ?
-        ma_ram_dout : ma_alu_rslt;
-    assign wb_csr_din = 32'h0;
-    assign wb_reg_wen = wb_state.READY && ma_inst.UPDATE_REG;
-    assign csr_addr = ma_inst.CSRRW | ma_inst.CSRRS | ma_inst.CSRRC | ma_inst.CSRRWI |
-        ma_inst.CSRRSI | ma_inst.CSRRCI ? ma_csr_num : if_csr_num;
+    assign ma_reg_wen = wb_state.READY && ma_inst.UPDATE_REG;
+    assign ma_csr_wen = wb_state.READY && ma_inst.UPDATE_CSR;
+    always_comb begin
+        if (ma_inst.LB | ma_inst.LH | ma_inst.LW | ma_inst.LBU | ma_inst.LHU) begin
+            ma_wdata = ma_ram_dout;
+        end
+        else if (ma_inst.UPDATE_CSR) begin
+            ma_wdata = ma_csr;
+        end
+        else begin
+            ma_wdata = ma_alu_rslt;
+        end
+    end
 
     rip_regfile regfile (
         .rst_n(rst_n),
         .clk  (clk),
 
         .ma_rd_num(ma_rd_num),
-        .wen(wb_reg_wen),
-        .wdata(wb_wdata),
+        .wen(ma_reg_wen),
+        .wdata(ma_wdata),
 
         .if_rs1_num(if_rs1_num),
         .if_rs2_num(if_rs2_num),
@@ -408,12 +432,12 @@ module rip_core #(
         .rst_n(rst_n),
         .clk  (clk),
 
-        .write(1'b0),
-        .set(1'b0),
-        .clear(1'b0),
-        .csr_addr(csr_addr),
-        .csr_din(wb_csr_din),
-        .csr_dout(wb_csr_dout)
+        .ma_csr_num(ma_csr_num),
+        .ma_wen(ma_csr_wen),
+        .ma_csr_din(ma_alu_rslt),
+
+        .if_csr_num (if_csr_num),
+        .de_csr_dout(de_csr_reg)
     );
 
     always_ff @(posedge clk) begin

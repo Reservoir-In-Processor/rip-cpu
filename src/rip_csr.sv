@@ -5,12 +5,12 @@ module rip_csr (
     input rst_n,
     input clk,
 
-    input write,
-    input set,
-    input clear,
-    input [11:0] csr_addr,
-    input [31:0] csr_din,
-    output reg [31:0] csr_dout
+    input [11:0] ma_csr_num,
+    input ma_wen,
+    input [31:0] ma_csr_din,
+
+    input [11:0] if_csr_num,
+    output reg [31:0] de_csr_dout
 );
     reg [31:0] csrfile[1<<12];
 
@@ -22,24 +22,18 @@ module rip_csr (
                 csrfile[i] = 0;
             end
         end
-        else if (write) begin
-            csrfile[csr_addr] <= csr_din;
-        end
-        else if (set) begin
-            csrfile[csr_addr] <= csrfile[csr_addr] | csr_din;
-        end
-        else if (clear) begin
-            csrfile[csr_addr] <= csrfile[csr_addr] & ~csr_din;
+        else if (ma_wen) begin
+            csrfile[ma_csr_num] <= ma_csr_din;
         end
     end
 
     // read
     always_ff @(posedge clk) begin
         if (!rst_n) begin
-            csr_dout <= 0;
+            de_csr_dout <= 0;
         end
         else begin
-            csr_dout <= csrfile[csr_addr];
+            de_csr_dout <= ma_wen && (ma_csr_num == if_csr_num) ? ma_csr_din : csrfile[if_csr_num];
         end
     end
 endmodule

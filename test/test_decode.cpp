@@ -57,6 +57,7 @@ TEST_F(TestDecode, Lui) {
     EXPECT_EQ(dut->get_inst_name(), "LUI");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -71,6 +72,7 @@ TEST_F(TestDecode, Auipc) {
     EXPECT_EQ(dut->get_inst_name(), "AUIPC");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -85,6 +87,7 @@ TEST_F(TestDecode, Jal) {
     EXPECT_EQ(dut->get_inst_name(), "JAL");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -99,6 +102,7 @@ TEST_F(TestDecode, Jalr) {
     EXPECT_EQ(dut->get_inst_name(), "JALR");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -113,6 +117,7 @@ TEST_F(TestDecode, Beq) {
     EXPECT_EQ(dut->get_inst_name(), "BEQ");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -127,6 +132,7 @@ TEST_F(TestDecode, Bne) {
     EXPECT_EQ(dut->get_inst_name(), "BNE");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -141,6 +147,7 @@ TEST_F(TestDecode, Blt) {
     EXPECT_EQ(dut->get_inst_name(), "BLT");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -155,6 +162,7 @@ TEST_F(TestDecode, Bge) {
     EXPECT_EQ(dut->get_inst_name(), "BGE");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -169,6 +177,7 @@ TEST_F(TestDecode, Bltu) {
     EXPECT_EQ(dut->get_inst_name(), "BLTU");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -183,6 +192,7 @@ TEST_F(TestDecode, Bgeu) {
     EXPECT_EQ(dut->get_inst_name(), "BGEU");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -197,6 +207,7 @@ TEST_F(TestDecode, Lb) {
     EXPECT_EQ(dut->get_inst_name(), "LB");
     EXPECT_TRUE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -211,6 +222,7 @@ TEST_F(TestDecode, Lh) {
     EXPECT_EQ(dut->get_inst_name(), "LH");
     EXPECT_TRUE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -225,6 +237,7 @@ TEST_F(TestDecode, Lw) {
     EXPECT_EQ(dut->get_inst_name(), "LW");
     EXPECT_TRUE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -239,6 +252,7 @@ TEST_F(TestDecode, Lbu) {
     EXPECT_EQ(dut->get_inst_name(), "LBU");
     EXPECT_TRUE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -253,6 +267,7 @@ TEST_F(TestDecode, Lhu) {
     EXPECT_EQ(dut->get_inst_name(), "LHU");
     EXPECT_TRUE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -267,6 +282,7 @@ TEST_F(TestDecode, Sb) {
     EXPECT_EQ(dut->get_inst_name(), "SB");
     EXPECT_TRUE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -281,6 +297,7 @@ TEST_F(TestDecode, Sh) {
     EXPECT_EQ(dut->get_inst_name(), "SH");
     EXPECT_TRUE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -295,6 +312,7 @@ TEST_F(TestDecode, Sw) {
     EXPECT_EQ(dut->get_inst_name(), "SW");
     EXPECT_TRUE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -309,6 +327,7 @@ TEST_F(TestDecode, Addi) {
     EXPECT_EQ(dut->get_inst_name(), "ADDI");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -323,6 +342,7 @@ TEST_F(TestDecode, Slti) {
     EXPECT_EQ(dut->get_inst_name(), "SLTI");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -337,6 +357,7 @@ TEST_F(TestDecode, Sltiu) {
     EXPECT_EQ(dut->get_inst_name(), "SLTIU");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -351,6 +372,7 @@ TEST_F(TestDecode, Xori) {
     EXPECT_EQ(dut->get_inst_name(), "XORI");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -365,6 +387,7 @@ TEST_F(TestDecode, Ori) {
     EXPECT_EQ(dut->get_inst_name(), "ORI");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -379,6 +402,7 @@ TEST_F(TestDecode, Andi) {
     EXPECT_EQ(dut->get_inst_name(), "ANDI");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -393,6 +417,7 @@ TEST_F(TestDecode, Slli) {
     EXPECT_EQ(dut->get_inst_name(), "SLLI");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -407,6 +432,7 @@ TEST_F(TestDecode, Srli) {
     EXPECT_EQ(dut->get_inst_name(), "SRLI");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -421,6 +447,7 @@ TEST_F(TestDecode, Srai) {
     EXPECT_EQ(dut->get_inst_name(), "SRAI");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -435,6 +462,7 @@ TEST_F(TestDecode, Add) {
     EXPECT_EQ(dut->get_inst_name(), "ADD");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -449,6 +477,7 @@ TEST_F(TestDecode, Sub) {
     EXPECT_EQ(dut->get_inst_name(), "SUB");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -463,6 +492,7 @@ TEST_F(TestDecode, Sll) {
     EXPECT_EQ(dut->get_inst_name(), "SLL");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -477,6 +507,7 @@ TEST_F(TestDecode, Slt) {
     EXPECT_EQ(dut->get_inst_name(), "SLT");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -491,6 +522,7 @@ TEST_F(TestDecode, Sltu) {
     EXPECT_EQ(dut->get_inst_name(), "SLTU");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -505,6 +537,7 @@ TEST_F(TestDecode, Xor) {
     EXPECT_EQ(dut->get_inst_name(), "XOR");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -519,6 +552,7 @@ TEST_F(TestDecode, Srl) {
     EXPECT_EQ(dut->get_inst_name(), "SRL");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -533,6 +567,7 @@ TEST_F(TestDecode, Sra) {
     EXPECT_EQ(dut->get_inst_name(), "SRA");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -547,6 +582,7 @@ TEST_F(TestDecode, Or) {
     EXPECT_EQ(dut->get_inst_name(), "OR");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -561,6 +597,7 @@ TEST_F(TestDecode, And) {
     EXPECT_EQ(dut->get_inst_name(), "AND");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -575,6 +612,7 @@ TEST_F(TestDecode, Fence) {
     EXPECT_EQ(dut->get_inst_name(), "FENCE");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -589,6 +627,7 @@ TEST_F(TestDecode, FenceI) {
     EXPECT_EQ(dut->get_inst_name(), "FENCE_I");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -603,6 +642,7 @@ TEST_F(TestDecode, Ecall) {
     EXPECT_EQ(dut->get_inst_name(), "ECALL");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -617,6 +657,7 @@ TEST_F(TestDecode, Ebreak) {
     EXPECT_EQ(dut->get_inst_name(), "EBREAK");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -634,6 +675,7 @@ TEST_F(TestDecode, Csrrw) {
     EXPECT_EQ(dut->get_inst_name(), "CSRRW");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -651,6 +693,7 @@ TEST_F(TestDecode, Csrrs) {
     EXPECT_EQ(dut->get_inst_name(), "CSRRS");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -668,6 +711,7 @@ TEST_F(TestDecode, Csrrc) {
     EXPECT_EQ(dut->get_inst_name(), "CSRRC");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -685,6 +729,7 @@ TEST_F(TestDecode, Csrrwi) {
     EXPECT_EQ(dut->get_inst_name(), "CSRRWI");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -702,6 +747,7 @@ TEST_F(TestDecode, Csrrsi) {
     EXPECT_EQ(dut->get_inst_name(), "CSRRSI");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -719,6 +765,7 @@ TEST_F(TestDecode, Csrrci) {
     EXPECT_EQ(dut->get_inst_name(), "CSRRCI");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -733,6 +780,7 @@ TEST_F(TestDecode, AddiNoRegUpdate) {
     EXPECT_EQ(dut->get_inst_name(), "ADDI");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
@@ -761,6 +809,7 @@ TEST_F(TestDecode, AddiSignalTiming) {
     EXPECT_EQ(dut->get_inst_name(), "ADDI");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 
     // negative edge
@@ -785,6 +834,7 @@ TEST_F(TestDecode, AddiSignalTiming) {
     EXPECT_EQ(dut->get_inst_name(), "NOP");
     EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 

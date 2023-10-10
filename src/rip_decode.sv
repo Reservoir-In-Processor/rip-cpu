@@ -206,6 +206,7 @@ module rip_decode (
             inst.ACCESS_MEM <= inst_code[6:0] == 7'b0000011  /* LOAD */ ||
                 inst_code[6:0] == 7'b0100011  /* STORE */;
             inst.UPDATE_REG <= if_rd_num != 5'h0;
+            inst.UPDATE_CSR <= inst_code[6:0] == 7'b1110011 && funct3 != 3'b000;
             inst.UPDATE_PC <= inst_code[6:0] == 7'b1101111  /* JAL */ || inst_code[6:0] ==
                 7'b1100111  /* JALR */ || inst_code[6:0] == 7'b1100011  /* BRANCH */ ||
                 (inst_code[6:0] == 7'b1110011 && funct3 == 3'b000)  /* ECALL and EBREAK */;

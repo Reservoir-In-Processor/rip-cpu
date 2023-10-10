@@ -15,6 +15,7 @@ void Inst::init(const inst_bit_t& inst_bit) {
         // pipeline control signals
         {"UPDATE_PC", (bool)_inst_bit.UPDATE_PC},
         {"UPDATE_REG", (bool)_inst_bit.UPDATE_REG},
+        {"UPDATE_CSR", (bool)_inst_bit.UPDATE_CSR},
         {"ACCESS_MEM", (bool)_inst_bit.ACCESS_MEM},
     };
     _inst_map = {
