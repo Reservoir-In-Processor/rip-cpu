@@ -18,6 +18,7 @@ typedef struct {
     bool CSRRC : 1;
     bool CSRRS : 1;
     bool CSRRW : 1;
+    bool MRET : 1;
     bool EBREAK : 1;
     bool ECALL : 1;
     bool FENCE_I : 1;

@@ -41,6 +41,7 @@ typedef struct packed {
     logic FENCE_I;
     logic ECALL;
     logic EBREAK;
+    logic MRET;
     logic CSRRW;
     logic CSRRS;
     logic CSRRC;

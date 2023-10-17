@@ -1,17 +1,21 @@
-`default_nettype none `timescale 1ns / 1ps
+`default_nettype none
+`timescale 1ns / 1ps
 
 // `include "rip_decode.sv"
 // `include "rip_regfile.sv"
 // `include "rip_csr.sv"
 // `include "rip_alu.sv"
 // `include "rip_memory.sv"
+// `include "rip_const.svh"
 
 module rip_core #(
-    parameter int START_ADDR = 32'h00008000  // for fib(10) simulation
+    parameter int START_ADDR = 32'h00008000
 ) (
     input rst_n,
     input clk
 );
+    import rip_const::*;
+    csr_t csr;
 
     typedef struct packed {
         logic INVALID;
@@ -36,6 +40,12 @@ module rip_core #(
                      (ex_alu_rslt[0] & (ex_inst.BEQ | ex_inst.BNE | ex_inst.BLT | ex_inst.BGE |
                                         ex_inst.BLTU | ex_inst.BGEU))) begin
                 pc_next = ex_pc + ex_imm;
+            end
+            else if (ex_inst.ECALL) begin
+                pc_next = csr.mtvec;
+            end
+            else if (ex_inst.MRET) begin
+                pc_next = csr.mepc + 32'h4;
             end
             else begin
                 pc_next = ex_pc + 32'h4;
@@ -91,7 +101,7 @@ module rip_core #(
             if_pc    <= 32'h0;
         end
         else begin
-            if (pc_state.INVALID | ex_invalid_by_jmp) begin
+            if (pc_state.INVALID | ex_flush_by_jmp) begin
                 if_state <= 3'b100;
             end
             else if (ex_stall_by_load) begin
@@ -184,6 +194,8 @@ module rip_core #(
         end
     end
 
+    assign de_csr_reg = read_csr(csr, if_csr_num);
+
     // forwarding csr register
     always_comb begin
         if (ma_state.READY && ex_inst.UPDATE_CSR) begin
@@ -206,7 +218,7 @@ module rip_core #(
             de_csr_num <= 12'h0;
         end
         else begin
-            if (if_state.INVALID | (!de_state.STALL & if_state.STALL) | ex_invalid_by_jmp) begin
+            if (if_state.INVALID | (!de_state.STALL & if_state.STALL) | ex_flush_by_jmp) begin
                 de_state <= 3'b100;
             end
             else if (ex_stall_by_load) begin
@@ -233,7 +245,7 @@ module rip_core #(
     logic [31:0] ex_pc;
     inst_t ex_inst;
     wire ex_stall_by_load;
-    wire ex_invalid_by_jmp;
+    wire ex_flush_by_jmp;
 
     logic [4:0] ex_rd_num;
     logic [11:0] ex_csr_num;
@@ -266,7 +278,7 @@ module rip_core #(
     assign ex_stall_by_load = ex_state.READY &
         (de_inst.LB | de_inst.LH | de_inst.LW | de_inst.LBU | de_inst.LHU) & de_state.READY &
         (de_rd_num == if_rs1_num | de_rd_num == if_rs2_num);
-    assign ex_invalid_by_jmp = ex_state.READY & de_inst.UPDATE_PC;
+    assign ex_flush_by_jmp = ex_state.READY & de_inst.UPDATE_PC;
 
     always_ff @(posedge clk) begin
         if (!rst_n) begin
@@ -284,7 +296,7 @@ module rip_core #(
             ex_csr_num  <= 12'h0;
         end
         else begin
-            if (de_state.INVALID | ex_invalid_by_jmp) begin
+            if (de_state.INVALID | ex_flush_by_jmp) begin
                 ex_state <= 3'b100;
             end
             else if (ex_stall_by_load) begin
@@ -321,6 +333,28 @@ module rip_core #(
 
                 ex_rd_num   <= 5'h0;
                 ex_csr_num  <= 12'h0;
+            end
+        end
+    end
+
+    // csr
+    always_ff @(posedge clk) begin
+        if (!rst_n) begin
+            csr.mstatus = 32'h0;
+            csr.mtvec   = 32'h0;
+            csr.mepc    = 32'h0;
+            csr.mcause  = 32'h0;
+        end else begin
+            if (ma_csr_wen) begin
+                csr_write(csr, ma_csr_num, ma_alu_rslt);
+            end
+            if (ex_state.READY && de_inst.ECALL) begin
+                csr.mcause = CAUSE_ECALL;
+                csr.mepc   = ex_pc;
+            end
+            if (ex_state.READY && de_inst.UPDATE_CSR && de_csr_num[11:10] == 2'b11) begin
+                csr.mcause = CAUSE_ILLEGAL_INST;
+                csr.mepc   = ex_pc;
             end
         end
     end
@@ -426,18 +460,6 @@ module rip_core #(
 
         .rs1(de_rs1_reg),
         .rs2(de_rs2_reg)
-    );
-
-    rip_csr csr (
-        .rst_n(rst_n),
-        .clk  (clk),
-
-        .ma_csr_num(ma_csr_num),
-        .ma_wen(ma_csr_wen),
-        .ma_csr_din(ma_alu_rslt),
-
-        .if_csr_num (if_csr_num),
-        .de_csr_dout(de_csr_reg)
     );
 
     always_ff @(posedge clk) begin
