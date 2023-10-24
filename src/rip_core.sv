@@ -45,7 +45,7 @@ module rip_core #(
                 pc_next = csr.mtvec;
             end
             else if (ex_inst.MRET) begin
-                pc_next = csr.mepc + 32'h4;
+                pc_next = csr.mepc;
             end
             else begin
                 pc_next = ex_pc + 32'h4;
@@ -139,7 +139,7 @@ module rip_core #(
     logic [31:0] de_rs2;
     wire [31:0] de_imm;
     wire [4:0] de_csr_zimm;
-    wire [31:0] de_csr_reg;
+    logic [31:0] de_csr_reg;
     logic [31:0] de_csr;
 
     rip_decode decode (
@@ -194,14 +194,17 @@ module rip_core #(
         end
     end
 
-    assign de_csr_reg = read_csr(csr, if_csr_num);
+    // assign de_csr_reg = read_csr(csr, if_csr_num);
+    always_ff @(posedge clk) begin
+        de_csr_reg <= read_csr(csr, if_csr_num);
+    end
 
     // forwarding csr register
     always_comb begin
-        if (ma_state.READY && ex_inst.UPDATE_CSR) begin
+        if (ma_state.READY && ex_inst.UPDATE_CSR && if_csr_num == ex_csr_num) begin
             de_csr = ex_alu_rslt;
         end
-        else if (wb_state.READY && ma_inst.UPDATE_CSR) begin
+        else if (wb_state.READY && ma_inst.UPDATE_CSR && if_csr_num == ma_csr_num) begin
             de_csr = ma_alu_rslt;
         end
         else begin
@@ -344,15 +347,20 @@ module rip_core #(
             csr.mtvec   = 32'h0;
             csr.mepc    = 32'h0;
             csr.mcause  = 32'h0;
-        end else begin
+        end
+        else begin
             if (ma_csr_wen) begin
-                csr_write(csr, ma_csr_num, ma_alu_rslt);
+                write_csr(csr, ma_csr_num, ma_alu_rslt);
             end
+            // ECALL execution
             if (ex_state.READY && de_inst.ECALL) begin
                 csr.mcause = CAUSE_ECALL;
                 csr.mepc   = ex_pc;
             end
-            if (ex_state.READY && de_inst.UPDATE_CSR && de_csr_num[11:10] == 2'b11) begin
+            // illegal instruction: update read-only CSR
+            // except [csrr XX, YY] := [csrrs XX, zero, YY]
+            if (ex_state.READY && de_inst.UPDATE_CSR && de_csr_num[11:10] == 2'b11 &&
+                !(de_inst.CSRRS && de_rs1 == 32'h0)) begin
                 csr.mcause = CAUSE_ILLEGAL_INST;
                 csr.mepc   = ex_pc;
             end

@@ -20,6 +20,8 @@ module rip_alu (
     logic [31:0] b;
     logic [ 4:0] shamt;
 
+    assign shamt = inst.SLLI | inst.SRLI | inst.SRAI ? imm[4:0] : 0;
+
     always_comb begin
         if (inst.AUIPC | inst.JAL | inst.JALR) begin
             a = pc;
@@ -36,7 +38,7 @@ module rip_alu (
         end
         else if (inst.LUI | inst.AUIPC | inst.LB | inst.LH | inst.LW | inst.LBU | inst.LHU |
                  inst.SB | inst.SH | inst.SW | inst.ADDI | inst.SLTI | inst.SLTIU | inst.XORI |
-                 inst.ORI | inst.ANDI | inst.SLLI | inst.SRLI | inst.SRAI) begin
+                 inst.ORI | inst.ANDI) begin
             b = imm;
         end
         else if (inst.CSRRW | inst.CSRRS | inst.CSRRC | inst.CSRRWI | inst.CSRRSI |

@@ -20,8 +20,9 @@ module rip_regfile (
     always_ff @(posedge clk) begin
         if (!rst_n) begin
             for (int i = 0; i < 32; i = i + 1) begin
-                if (i == 2) begin  // sp; for fib(10) simulation
-                    regfile[i] <= 32'h8400;
+                // sp; for riscv-tests
+                if (i == 2) begin
+                    regfile[i] <= 32'h000010000;
                 end
                 else begin
                     regfile[i] <= 0;

@@ -1,6 +1,8 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
+`include "rip_const.svh"
+
 typedef struct packed {
     logic [31:0] mstatus;
     logic [31:0] mtvec;
@@ -9,7 +11,7 @@ typedef struct packed {
 } csr_t;
 
 // returns {valid, csr_value}
-function static [31:0] read_csr(input csr_t csr, input bit [11:0] csr_num);
+function static [31:0] read_csr(input csr_t csr, input logic [11:0] csr_num);
     begin
         import rip_const::*;
         case (csr_num)
@@ -22,7 +24,7 @@ function static [31:0] read_csr(input csr_t csr, input bit [11:0] csr_num);
 endfunction : read_csr
 
 // set csr value
-task static csr_write(input csr_t csr, input bit [11:0] csr_num, input bit [31:0] csr_value);
+task static write_csr(inout csr_t csr, input logic [11:0] csr_num, input logic [31:0] csr_value);
     begin
         import rip_const::*;
         case (csr_num)
@@ -32,4 +34,4 @@ task static csr_write(input csr_t csr, input bit [11:0] csr_num, input bit [31:0
             default: ;
         endcase
     end
-endtask : csr_write
+endtask : write_csr
