@@ -13,6 +13,9 @@ module rip_core #(
 ) (
     input rst_n,
     input clk
+`ifdef VERILATOR
+    , output wire [31:0] riscv_tests_passed
+`endif
 );
     import rip_const::*;
     csr_t csr;
@@ -491,6 +494,8 @@ module rip_core #(
     logic [31:0] de_inst_code, ex_inst_code, ma_inst_code, wb_inst_code;
     logic [31:0] ma_pc, wb_pc;
     logic finished;
+
+    assign riscv_tests_passed = regfile.regfile[3];
 
     initial begin
         file_handle = $fopen("dump.txt");

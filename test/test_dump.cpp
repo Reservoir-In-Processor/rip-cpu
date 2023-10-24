@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <fstream>
 
 #include <verilated.h>
@@ -12,6 +13,12 @@ constexpr int TIME_MAX = 100000;    // for fib(10) simulation
 const char* WAVEFORM_FILE = "simx.vcd";
 TEST(TestCore, ExportWaveform) {
     // Instantiate DUT
+    std::string testcase_filename = "../../hex/fib.hex";
+    std::string tmp_filename = "../../hex/testcase.hex";
+    std::filesystem::copy_file(
+        testcase_filename, tmp_filename,
+        std::filesystem::copy_options::overwrite_existing);
+
     Vcore* dut = new Vcore();
 
     // Trace DUMP ON
