@@ -34,7 +34,8 @@ enable_testing()
 add_executable(test_all
   test_inst.cpp
   test_decode.cpp
-  test_core.cpp
+  test_riscv_tests.cpp
+  test_dump.cpp
   main.cpp
 )
 target_link_libraries(

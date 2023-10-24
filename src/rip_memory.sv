@@ -40,7 +40,11 @@ module rip_memory #(
 
     // initialization
     initial begin
-        $readmemh("../hex/ram.hex", mem_block);
+        `ifdef VERILATOR
+            $readmemh("../../hex/testcase.hex", mem_block);
+        `else
+            $readmemh("../../hex/fib.hex", mem_block);
+        `endif
     end
 
     // instruction fetch

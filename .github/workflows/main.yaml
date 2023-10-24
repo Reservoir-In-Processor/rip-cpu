@@ -10,10 +10,7 @@ jobs:
       - name: Run apt update
         run: apt update 2>/dev/null
       - name: Run apt install prerequisites
-        run: |
-          # apt install -y clang-9
-          # ln -s /usr/bin/clang++-9 /usr/bin/clang++
-          apt install -y cmake ninja-build
+        run: apt install -y cmake ninja-build
       - uses: actions/checkout@v3
       - name: Build
         run: |
@@ -22,5 +19,5 @@ jobs:
           ninja -C build
       - name: Run tests
         run: |
-          cd test
-          ./build/test_all
+          cd test/build
+          ./test_all
