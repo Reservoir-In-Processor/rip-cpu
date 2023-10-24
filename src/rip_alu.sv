@@ -20,7 +20,7 @@ module rip_alu (
     logic [31:0] b;
     logic [ 4:0] shamt;
 
-    assign shamt = inst.SLLI | inst.SRLI | inst.SRAI ? imm[4:0] : 0;
+    assign shamt = inst.SLL | inst.SRL | inst.SRA | inst.SLLI | inst.SRLI | inst.SRAI ? b[4:0] : 0;
 
     always_comb begin
         if (inst.AUIPC | inst.JAL | inst.JALR) begin
