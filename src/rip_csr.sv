@@ -1,45 +1,37 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
-module rip_csr (
-    input rst_n,
-    input clk,
+`include "rip_const.svh"
 
-    input write,
-    input set,
-    input clear,
-    input [11:0] csr_addr,
-    input [31:0] csr_din,
-    output reg [31:0] csr_dout
-);
-    reg [31:0] csrfile[1<<12];
+typedef struct packed {
+    logic [31:0] mstatus;
+    logic [31:0] mtvec;
+    logic [31:0] mepc;
+    logic [31:0] mcause;
+} csr_t;
 
-    // initialize and write
-    always_ff @(posedge clk) begin
-        if (!rst_n) begin
-            // todo: initialize correctly
-            for (int i = 0; i < (1 << 12); i = i + 1) begin
-                csrfile[i] = 0;
-            end
-        end
-        else if (write) begin
-            csrfile[csr_addr] <= csr_din;
-        end
-        else if (set) begin
-            csrfile[csr_addr] <= csrfile[csr_addr] | csr_din;
-        end
-        else if (clear) begin
-            csrfile[csr_addr] <= csrfile[csr_addr] & ~csr_din;
-        end
+// returns {valid, csr_value}
+function static [31:0] read_csr(input csr_t csr, input logic [11:0] csr_num);
+    begin
+        import rip_const::*;
+        case (csr_num)
+            MTVEC: read_csr = csr.mtvec;
+            MEPC: read_csr = csr.mepc;
+            MCAUSE: read_csr = csr.mcause;
+            default: read_csr = 32'b0;
+        endcase
     end
+endfunction : read_csr
 
-    // read
-    always_ff @(posedge clk) begin
-        if (!rst_n) begin
-            csr_dout <= 0;
-        end
-        else begin
-            csr_dout <= csrfile[csr_addr];
-        end
+// set csr value
+task static write_csr(inout csr_t csr, input logic [11:0] csr_num, input logic [31:0] csr_value);
+    begin
+        import rip_const::*;
+        case (csr_num)
+            MTVEC: csr.mtvec = csr_value;
+            MEPC: csr.mepc = csr_value;
+            MCAUSE: csr.mcause = csr_value;
+            default: ;
+        endcase
     end
-endmodule
+endtask : write_csr

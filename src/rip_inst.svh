@@ -41,6 +41,7 @@ typedef struct packed {
     logic FENCE_I;
     logic ECALL;
     logic EBREAK;
+    logic MRET;
     logic CSRRW;
     logic CSRRS;
     logic CSRRC;
@@ -51,5 +52,6 @@ typedef struct packed {
     // pipeline control signals
     logic ACCESS_MEM;
     logic UPDATE_REG;
+    logic UPDATE_CSR;
     logic UPDATE_PC;
 } inst_t;

@@ -7,6 +7,7 @@
 typedef struct {
     // pipeline control signals
     bool UPDATE_PC : 1;
+    bool UPDATE_CSR : 1;
     bool UPDATE_REG : 1;
     bool ACCESS_MEM : 1;
 
@@ -17,6 +18,7 @@ typedef struct {
     bool CSRRC : 1;
     bool CSRRS : 1;
     bool CSRRW : 1;
+    bool MRET : 1;
     bool EBREAK : 1;
     bool ECALL : 1;
     bool FENCE_I : 1;

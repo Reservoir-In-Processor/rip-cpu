@@ -10,7 +10,9 @@ module rip_alu (
     input [31:0] rs1,
     input [31:0] rs2,
     input [31:0] pc,
+    input [31:0] csr,
     input [31:0] imm,
+    input [ 4:0] zimm,
 
     output reg [31:0] rslt
 );
@@ -18,9 +20,14 @@ module rip_alu (
     logic [31:0] b;
     logic [ 4:0] shamt;
 
+    assign shamt = inst.SLLI | inst.SRLI | inst.SRAI ? imm[4:0] : 0;
+
     always_comb begin
         if (inst.AUIPC | inst.JAL | inst.JALR) begin
             a = pc;
+        end
+        else if (inst.CSRRWI | inst.CSRRSI | inst.CSRRCI) begin
+            a = {27'b0, zimm};
         end
         else begin
             a = rs1;
@@ -31,8 +38,12 @@ module rip_alu (
         end
         else if (inst.LUI | inst.AUIPC | inst.LB | inst.LH | inst.LW | inst.LBU | inst.LHU |
                  inst.SB | inst.SH | inst.SW | inst.ADDI | inst.SLTI | inst.SLTIU | inst.XORI |
-                 inst.ORI | inst.ANDI | inst.SLLI | inst.SRLI | inst.SRAI) begin
+                 inst.ORI | inst.ANDI) begin
             b = imm;
+        end
+        else if (inst.CSRRW | inst.CSRRS | inst.CSRRC | inst.CSRRWI | inst.CSRRSI |
+                 inst.CSRRCI) begin
+            b = csr;
         end
         else begin
             b = rs2;
@@ -52,6 +63,7 @@ module rip_alu (
     logic [31:0] alu_sra;
     logic [31:0] alu_or;
     logic [31:0] alu_and;
+    logic [31:0] alu_clear;
 
     always_comb begin
         alu_eq      = a == b;
@@ -67,6 +79,7 @@ module rip_alu (
         alu_sra     = $signed(a) >>> shamt;
         alu_or      = a | b;
         alu_and     = a & b;
+        alu_clear   = ~a & b;
     end
 
     always_ff @(posedge clk) begin
@@ -109,11 +122,17 @@ module rip_alu (
             else if (inst.SRA | inst.SRAI) begin
                 rslt <= alu_sra;
             end
-            else if (inst.OR | inst.ORI) begin
+            else if (inst.OR | inst.ORI | inst.CSRRS | inst.CSRRSI) begin
                 rslt <= alu_or;
             end
             else if (inst.AND | inst.ANDI) begin
                 rslt <= alu_and;
+            end
+            else if (inst.CSRRW | inst.CSRRWI) begin
+                rslt <= a;
+            end
+            else if (inst.CSRRC | inst.CSRRCI) begin
+                rslt <= alu_clear;
             end
             else begin
                 rslt <= 0;

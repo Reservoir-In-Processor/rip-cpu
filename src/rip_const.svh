@@ -12,6 +12,13 @@ package rip_const;
     localparam int W_WIDTH = 32; // word width
     localparam int D_WIDTH = 64; // double word width
 
+    localparam bit [11:0] MTVEC = 12'h305;
+    localparam bit [11:0] MEPC = 12'h341;
+    localparam bit [11:0] MCAUSE = 12'h342;
+
+    localparam int CAUSE_ILLEGAL_INST = 2;
+    localparam int CAUSE_ECALL = 11;
+
 endpackage
 
 `endif

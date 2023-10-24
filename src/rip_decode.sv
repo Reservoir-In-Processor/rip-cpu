@@ -140,10 +140,12 @@ module rip_decode (
     end
 
     // function code
-    wire [6:0] funct7;
-    wire [2:0] funct3;
-    assign funct7 = inst_code[31:25];
-    assign funct3 = inst_code[14:12];
+    wire [ 6:0] funct7;
+    wire [ 2:0] funct3;
+    wire [11:0] funct12;
+    assign funct7  = inst_code[31:25];
+    assign funct3  = inst_code[14:12];
+    assign funct12 = inst_code[31:20];
 
     // instruction
     always_ff @(posedge clk) begin
@@ -191,10 +193,9 @@ module rip_decode (
             inst.AND <= inst_code[6:0] == 7'b0110011 && funct3 == 3'b111 && funct7 == 7'b0000000;
             inst.FENCE <= inst_code[6:0] == 7'b0001111 && funct3 == 3'b000;
             inst.FENCE_I <= inst_code[6:0] == 7'b0001111 && funct3 == 3'b001;
-            inst.ECALL <= inst_code[6:0] == 7'b1110011 && funct3 == 3'b000 &&
-                inst_code[31:20] == 12'b000000000000;
-            inst.EBREAK <= inst_code[6:0] == 7'b1110011 && funct3 == 3'b000 &&
-                inst_code[31:20] == 12'b000000000001;
+            inst.ECALL <= inst_code[6:0] == 7'b1110011 && funct3 == 3'b000 && funct12 == 12'h0;
+            inst.EBREAK <= inst_code[6:0] == 7'b1110011 && funct3 == 3'b000 && funct12 == 12'h1;
+            inst.MRET <= inst_code[6:0] == 7'b1110011 && funct3 == 3'b000 && funct12 == 12'h302;
             inst.CSRRW <= inst_code[6:0] == 7'b1110011 && funct3 == 3'b001;
             inst.CSRRS <= inst_code[6:0] == 7'b1110011 && funct3 == 3'b010;
             inst.CSRRC <= inst_code[6:0] == 7'b1110011 && funct3 == 3'b011;
@@ -206,6 +207,7 @@ module rip_decode (
             inst.ACCESS_MEM <= inst_code[6:0] == 7'b0000011  /* LOAD */ ||
                 inst_code[6:0] == 7'b0100011  /* STORE */;
             inst.UPDATE_REG <= if_rd_num != 5'h0;
+            inst.UPDATE_CSR <= inst_code[6:0] == 7'b1110011 && funct3 != 3'b000;
             inst.UPDATE_PC <= inst_code[6:0] == 7'b1101111  /* JAL */ || inst_code[6:0] ==
                 7'b1100111  /* JALR */ || inst_code[6:0] == 7'b1100011  /* BRANCH */ ||
                 (inst_code[6:0] == 7'b1110011 && funct3 == 3'b000)  /* ECALL and EBREAK */;
