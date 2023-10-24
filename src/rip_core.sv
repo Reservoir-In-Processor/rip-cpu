@@ -489,6 +489,7 @@ module rip_core #(
     logic  after_wb_ready;
     inst_t wb_inst;
     logic [31:0] de_inst_code, ex_inst_code, ma_inst_code, wb_inst_code;
+    logic [31:0] ma_pc, wb_pc;
     logic finished;
 
     initial begin
@@ -519,16 +520,20 @@ module rip_core #(
             after_wb_ready <= wb_state.READY;
             if (de_state.READY) de_inst_code <= if_inst_code;
             if (ex_state.READY) ex_inst_code <= de_inst_code;
-            if (ma_state.READY) ma_inst_code <= ex_inst_code;
+            if (ma_state.READY) begin
+                ma_inst_code <= ex_inst_code;
+                ma_pc        <= ex_pc;
+            end
             if (wb_state.READY) begin
                 wb_inst      <= ma_inst;
                 wb_inst_code <= ma_inst_code;
+                wb_pc        <= ma_pc;
             end
         end
 
         if (after_wb_ready & !finished) begin
-            $fdisplay(file_handle, "Inst: (%d ps)\n???  := %b(BIN) = %X (HEX LE)", t, wb_inst_code,
-                      wb_inst_code);
+            $fdisplay(file_handle, "Inst @ %X (%d ps)\n???  := %b(BIN) = %X (HEX LE)", wb_pc, t,
+                      wb_inst_code, wb_inst_code);
             $fdisplay(file_handle, "Regs after:");
             $fdisplay(
                 file_handle, "x0 (zero):= %X, x1 ( ra ):= %X, x2 ( sp ):= %X, x3 ( gp ):= %X, ",
@@ -537,23 +542,30 @@ module rip_core #(
                 file_handle, "x4 ( tp ):= %X, x5 ( t0 ):= %X, x6 ( t1 ):= %X, x7 ( t2 ):= %X, ",
                 regfile.regfile[4], regfile.regfile[5], regfile.regfile[6], regfile.regfile[7]);
             $fdisplay(
-                file_handle, "x8 ( s0 ):= %X, x9 ( s1 ):= %X, xa ( a0 ):= %X, xb ( a1 ):= %X, ",
+                file_handle, "x8 ( s0 ):= %X, x9 ( s1 ):= %X, x10( a0 ):= %X, x11( a1 ):= %X, ",
                 regfile.regfile[8], regfile.regfile[9], regfile.regfile[10], regfile.regfile[11]);
             $fdisplay(
-                file_handle, "xc ( a2 ):= %X, xd ( a3 ):= %X, xe ( a4 ):= %X, xf ( a5 ):= %X, ",
+                file_handle, "x12( a2 ):= %X, x13( a3 ):= %X, x14( a4 ):= %X, x15( a5 ):= %X, ",
                 regfile.regfile[12], regfile.regfile[13], regfile.regfile[14], regfile.regfile[15]);
             $fdisplay(
-                file_handle, "x10( a6 ):= %X, x11( a7 ):= %X, x12( s2 ):= %X, x13( s3 ):= %X, ",
+                file_handle, "x16( a6 ):= %X, x17( a7 ):= %X, x18( s2 ):= %X, x19( s3 ):= %X, ",
                 regfile.regfile[16], regfile.regfile[17], regfile.regfile[18], regfile.regfile[19]);
             $fdisplay(
-                file_handle, "x14( s4 ):= %X, x15( s5 ):= %X, x16( s6 ):= %X, x17( s7 ):= %X, ",
+                file_handle, "x20( s4 ):= %X, x21( s5 ):= %X, x22( s6 ):= %X, x23( s7 ):= %X, ",
                 regfile.regfile[20], regfile.regfile[21], regfile.regfile[22], regfile.regfile[23]);
             $fdisplay(
-                file_handle, "x18( s8 ):= %X, x19( s9 ):= %X, x1a( s10):= %X, x1b( s11):= %X, ",
+                file_handle, "x24( s8 ):= %X, x25( s9 ):= %X, x26( s10):= %X, x27( s11):= %X, ",
                 regfile.regfile[24], regfile.regfile[25], regfile.regfile[26], regfile.regfile[27]);
             $fdisplay(
-                file_handle, "x1c( t3 ):= %X, x1d( t4 ):= %X, x1e( t5 ):= %X, x1f( t6 ):= %X,\n",
+                file_handle, "x28( t3 ):= %X, x29( t4 ):= %X, x30( t5 ):= %X, x31( t6 ):= %X, \n",
                 regfile.regfile[28], regfile.regfile[29], regfile.regfile[30], regfile.regfile[31]);
+
+            $fdisplay(file_handle, "  satp  := %X,  mstatus:= %X,  medeleg:= %X,  mideleg:= %X, ",
+                      32'h0, csr.mstatus, 32'h0, 32'h0);
+            $fdisplay(file_handle, "   mie  := %X,   mtvec := %X,   mepc  := %X,  mcause := %X, ",
+                      32'h0, csr.mtvec, csr.mepc, csr.mcause);
+            $fdisplay(file_handle, "  mtval := %X,  pmpcfg := %X,  pmpaddr:= %X,  mhartid:= %X, \n",
+                      32'h0, 32'h0, 32'h0, 32'h0);
 
             // finish simulation when invalid instruction is executed
             if (wb_state.READY & !|wb_inst) begin
