@@ -58,7 +58,9 @@ gtest_discover_tests(test_all)
 verilate(test_all
   INCLUDE_DIRS "../src"
   SOURCES
-  ../src/rip_inst.svh
+  ../src/rip_const.svh
+  ../src/rip_type.svh
+  ../src/rip_common.sv
   ../src/rip_decode.sv
   PREFIX Vdecode
 )
@@ -67,8 +69,9 @@ verilate(test_all
 verilate(test_all
   INCLUDE_DIRS "../src"
   SOURCES
-    ../src/rip_inst.svh
     ../src/rip_const.svh
+    ../src/rip_type.svh
+    ../src/rip_common.sv
     ../src/rip_alu.sv
     ../src/rip_regfile.sv
     ../src/rip_csr.sv

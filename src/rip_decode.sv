@@ -1,6 +1,8 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
+`include "rip_common.sv"
+
 module rip_decode (
     input rst_n,
     input clk,
@@ -28,7 +30,7 @@ module rip_decode (
     output logic [31:0] imm,
 
     // instructions and pipeline control
-    output inst_t inst
+    output rip_common::inst_t inst
 );
 
     // instruction type and immediate

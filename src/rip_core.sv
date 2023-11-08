@@ -1,12 +1,7 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
-// `include "rip_decode.sv"
-// `include "rip_regfile.sv"
-// `include "rip_csr.sv"
-// `include "rip_alu.sv"
-// `include "rip_memory.sv"
-// `include "rip_const.svh"
+`include "rip_common.sv"
 
 module rip_core #(
     parameter int START_ADDR = 32'h00008000
@@ -17,7 +12,8 @@ module rip_core #(
     , output wire [31:0] riscv_tests_passed
 `endif  // VERILATOR
 );
-    import rip_const::*;
+    import rip_common::*;
+
     csr_t csr;
 
     typedef struct packed {

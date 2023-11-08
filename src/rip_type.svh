@@ -55,3 +55,10 @@ typedef struct packed {
     logic UPDATE_CSR;
     logic UPDATE_PC;
 } inst_t;
+
+typedef struct packed {
+    logic [31:0] mstatus;
+    logic [31:0] mtvec;
+    logic [31:0] mepc;
+    logic [31:0] mcause;
+} csr_t;
