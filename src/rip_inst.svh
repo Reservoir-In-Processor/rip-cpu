@@ -49,6 +49,16 @@ typedef struct packed {
     logic CSRRSI;
     logic CSRRCI;
 
+    // RV32M
+    logic MUL;
+    logic MULH;
+    logic MULHSU;
+    logic MULHU;
+    logic DIV;
+    logic DIVU;
+    logic REM;
+    logic REMU;
+
     // pipeline control signals
     logic ACCESS_MEM;
     logic UPDATE_REG;

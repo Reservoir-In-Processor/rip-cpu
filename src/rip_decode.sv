@@ -203,6 +203,16 @@ module rip_decode (
             inst.CSRRSI <= inst_code[6:0] == 7'b1110011 && funct3 == 3'b110;
             inst.CSRRCI <= inst_code[6:0] == 7'b1110011 && funct3 == 3'b111;
 
+            // RV32M instruction
+            inst.MUL <= inst_code[6:0] == 7'b0110011 && funct3 == 3'b000 && funct7 == 7'b0000001;
+            inst.MULH <= inst_code[6:0] == 7'b0110011 && funct3 == 3'b001 && funct7 == 7'b0000001;
+            inst.MULHSU <= inst_code[6:0] == 7'b0110011 && funct3 == 3'b010 && funct7 == 7'b0000001;
+            inst.MULHU <= inst_code[6:0] == 7'b0110011 && funct3 == 3'b011 && funct7 == 7'b0000001;
+            inst.DIV <= inst_code[6:0] == 7'b0110011 && funct3 == 3'b100 && funct7 == 7'b0000001;
+            inst.DIVU <= inst_code[6:0] == 7'b0110011 && funct3 == 3'b101 && funct7 == 7'b0000001;
+            inst.REM <= inst_code[6:0] == 7'b0110011 && funct3 == 3'b110 && funct7 == 7'b0000001;
+            inst.REMU <= inst_code[6:0] == 7'b0110011 && funct3 == 3'b111 && funct7 == 7'b0000001;
+
             // pipeline control
             inst.ACCESS_MEM <= inst_code[6:0] == 7'b0000011  /* LOAD */ ||
                 inst_code[6:0] == 7'b0100011  /* STORE */;
