@@ -79,3 +79,6 @@ TEST_P(RiscvTests, RiscvTests) {
 INSTANTIATE_TEST_SUITE_P(RV32I, RiscvTests,
                          ::testing::ValuesIn(getBinFilesWithPrefix(
                              "../../hex/riscv-tests", "rv32ui-p-")));
+INSTANTIATE_TEST_SUITE_P(RV32M, RiscvTests,
+                         ::testing::ValuesIn(getBinFilesWithPrefix(
+                             "../../hex/riscv-tests", "rv32um-p-")));
