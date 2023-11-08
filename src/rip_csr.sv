@@ -21,7 +21,7 @@ function static [31:0] read_csr(input csr_t csr, input logic [11:0] csr_num);
             default: read_csr = 32'b0;
         endcase
     end
-endfunction : read_csr
+endfunction: read_csr
 
 // set csr value
 task static write_csr(inout csr_t csr, input logic [11:0] csr_num, input logic [31:0] csr_value);
@@ -34,4 +34,4 @@ task static write_csr(inout csr_t csr, input logic [11:0] csr_num, input logic [
             default: ;
         endcase
     end
-endtask : write_csr
+endtask: write_csr

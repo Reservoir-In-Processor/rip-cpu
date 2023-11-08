@@ -216,4 +216,4 @@ module rip_decode (
             inst <= 0;
         end
     end
-endmodule
+endmodule: rip_decode

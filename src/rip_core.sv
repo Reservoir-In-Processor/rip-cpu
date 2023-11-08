@@ -15,7 +15,7 @@ module rip_core #(
     input clk
 `ifdef VERILATOR
     , output wire [31:0] riscv_tests_passed
-`endif
+`endif  // VERILATOR
 );
     import rip_const::*;
     csr_t csr;
@@ -579,5 +579,5 @@ module rip_core #(
             end
         end
     end
-`endif
-endmodule
+`endif  // VERILATOR
+endmodule: rip_core

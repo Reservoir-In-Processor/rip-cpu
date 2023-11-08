@@ -21,4 +21,4 @@ package rip_const;
 
 endpackage
 
-`endif
+`endif  // RIP_CONST

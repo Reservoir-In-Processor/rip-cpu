@@ -44,7 +44,7 @@ module rip_memory #(
             $readmemh("../../hex/testcase.hex", mem_block);
         `else
             $readmemh("../../hex/fib.hex", mem_block);
-        `endif
+        `endif  // VERILATOR
     end
 
     // instruction fetch
@@ -113,4 +113,4 @@ module rip_memory #(
         end
     end
 
-endmodule
+endmodule: rip_memory
