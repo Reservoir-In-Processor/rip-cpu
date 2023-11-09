@@ -1,11 +1,13 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
+`include "rip_common.sv"
+
 module rip_alu (
     input rst_n,
     input clk,
 
-    input inst_t inst,
+    input rip_common::inst_t inst,
 
     input [31:0] rs1,
     input [31:0] rs2,
@@ -177,4 +179,4 @@ module rip_alu (
             end
         end
     end
-endmodule
+endmodule: rip_alu

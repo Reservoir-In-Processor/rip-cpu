@@ -11,4 +11,4 @@ jobs:
       - name: Lint
         run: |
           cd src
-          verible-verilog-lint -rules=-always-ff-non-blocking,signal-name-style,parameter-name-style=localparam_style:ALL_CAPS *
+          verible-verilog-lint -rules=-always-ff-non-blocking,signal-name-style,parameter-name-style=localparam_style:ALL_CAPS,endif-comment,signal-name-style *

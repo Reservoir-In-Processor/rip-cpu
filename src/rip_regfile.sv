@@ -49,4 +49,4 @@ module rip_regfile (
             rs2 <= wen && (ma_rd_num == if_rs2_num) ? wdata : regfile[if_rs2_num];
         end
     end
-endmodule
+endmodule: rip_regfile
