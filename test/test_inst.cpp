@@ -68,6 +68,16 @@ void Inst::init(const inst_bit_t& inst_bit) {
         {"JAL", (bool)_inst_bit.JAL},
         {"AUIPC", (bool)_inst_bit.AUIPC},
         {"LUI", (bool)_inst_bit.LUI},
+
+        // RV32M
+        {"MUL", (bool)_inst_bit.MUL},
+        {"MULH", (bool)_inst_bit.MULH},
+        {"MULHSU", (bool)_inst_bit.MULHSU},
+        {"MULHU", (bool)_inst_bit.MULHU},
+        {"DIV", (bool)_inst_bit.DIV},
+        {"DIVU", (bool)_inst_bit.DIVU},
+        {"REM", (bool)_inst_bit.REM},
+        {"REMU", (bool)_inst_bit.REMU},
     };
 }
 

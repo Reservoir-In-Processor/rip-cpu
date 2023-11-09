@@ -66,6 +66,13 @@ module rip_alu (
     logic [31:0] alu_or;
     logic [31:0] alu_and;
     logic [31:0] alu_clear;
+    logic [63:0] alu_mul_ss;
+    logic [63:0] alu_mul_su;
+    logic [63:0] alu_mul_uu;
+    logic [31:0] alu_div_s;
+    logic [31:0] alu_div_u;
+    logic [31:0] alu_rem_s;
+    logic [31:0] alu_rem_u;
 
     always_comb begin
         alu_eq      = a == b;
@@ -82,6 +89,13 @@ module rip_alu (
         alu_or      = a | b;
         alu_and     = a & b;
         alu_clear   = ~a & b;
+        alu_mul_ss  = $signed(a) * $signed(b);
+        alu_mul_su  = $signed(a) * b;
+        alu_mul_uu  = a * b;
+        alu_div_s   = $signed(a) / $signed(b);
+        alu_div_u   = a / b;
+        alu_rem_s   = $signed(a) % $signed(b);
+        alu_rem_u   = a % b;
     end
 
     always_ff @(posedge clk) begin
@@ -135,6 +149,30 @@ module rip_alu (
             end
             else if (inst.CSRRC | inst.CSRRCI) begin
                 rslt <= alu_clear;
+            end
+            else if (inst.MUL) begin
+                rslt <= alu_mul_uu[31:0];
+            end
+            else if (inst.MULH) begin
+                rslt <= alu_mul_uu[63:32];
+            end
+            else if (inst.MULHSU) begin
+                rslt <= alu_mul_su[63:32];
+            end
+            else if (inst.MULHU) begin
+                rslt <= alu_mul_uu[63:32];
+            end
+            else if (inst.DIV) begin
+                rslt <= alu_div_s;
+            end
+            else if (inst.DIVU) begin
+                rslt <= alu_div_u;
+            end
+            else if (inst.REM) begin
+                rslt <= alu_rem_s;
+            end
+            else if (inst.REMU) begin
+                rslt <= alu_rem_u;
             end
             else begin
                 rslt <= 0;
