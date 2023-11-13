@@ -561,12 +561,12 @@ module rip_core #(
                 file_handle, "x28( t3 ):= %X, x29( t4 ):= %X, x30( t5 ):= %X, x31( t6 ):= %X, \n",
                 regfile.regfile[28], regfile.regfile[29], regfile.regfile[30], regfile.regfile[31]);
 
-            $fdisplay(file_handle, "  satp  := %X,  mstatus:= %X,  medeleg:= %X,  mideleg:= %X, ",
-                      32'h0, csr.mstatus, 32'h0, 32'h0);
-            $fdisplay(file_handle, "   mie  := %X,   mtvec := %X,   mepc  := %X,  mcause := %X, ",
-                      32'h0, csr.mtvec, csr.mepc, csr.mcause);
-            $fdisplay(file_handle, "  mtval := %X,  pmpcfg := %X,  pmpaddr:= %X,  mhartid:= %X, \n",
-                      32'h0, 32'h0, 32'h0, 32'h0);
+            // $fdisplay(file_handle, "  satp  := %X,  mstatus:= %X,  medeleg:= %X,  mideleg:= %X, ",
+            //           32'h0, csr.mstatus, 32'h0, 32'h0);
+            // $fdisplay(file_handle, "   mie  := %X,   mtvec := %X,   mepc  := %X,  mcause := %X, ",
+            //           32'h0, csr.mtvec, csr.mepc, csr.mcause);
+            // $fdisplay(file_handle, "  mtval := %X,  pmpcfg := %X,  pmpaddr:= %X,  mhartid:= %X, \n",
+            //           32'h0, 32'h0, 32'h0, 32'h0);
 
             // finish simulation when invalid instruction is executed
             if (wb_state.READY & !|wb_inst) begin

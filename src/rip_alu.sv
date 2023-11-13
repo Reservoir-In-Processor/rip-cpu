@@ -40,7 +40,7 @@ module rip_alu (
         end
         else if (inst.LUI | inst.AUIPC | inst.LB | inst.LH | inst.LW | inst.LBU | inst.LHU |
                  inst.SB | inst.SH | inst.SW | inst.ADDI | inst.SLTI | inst.SLTIU | inst.XORI |
-                 inst.ORI | inst.ANDI) begin
+                 inst.SLLI | inst.SRLI | inst.SRAI | inst.ORI | inst.ANDI) begin
             b = imm;
         end
         else if (inst.CSRRW | inst.CSRRS | inst.CSRRC | inst.CSRRWI | inst.CSRRSI |
@@ -89,13 +89,35 @@ module rip_alu (
         alu_or      = a | b;
         alu_and     = a & b;
         alu_clear   = ~a & b;
-        alu_mul_ss  = $signed(a) * $signed(b);
-        alu_mul_su  = $signed(a) * b;
-        alu_mul_uu  = a * b;
-        alu_div_s   = $signed(a) / $signed(b);
-        alu_div_u   = a / b;
-        alu_rem_s   = $signed(a) % $signed(b);
-        alu_rem_u   = a % b;
+        alu_mul_ss  = $signed($signed({{32{a[31]}}, a}) * $signed({{32{b[31]}}, b}));
+        alu_mul_su  = $signed($signed({{32{a[31]}}, a}) * $signed({32'h0, b}));
+        alu_mul_uu  = $signed($signed({32'h0, a}) * $signed({32'h0, b}));
+
+        if (b == '0) begin
+            alu_div_u = '1;
+            alu_rem_u = a;
+        end
+        else begin
+            alu_div_u = a / b;
+            alu_rem_u = a % b;
+        end
+
+        if (b == '0) begin
+            alu_div_s = '1;
+            alu_rem_s = a;
+        end
+        else if (a == 32'h80000000 && b == 32'hFFFFFFFF) begin
+            alu_div_s = 32'h80000000;
+            alu_rem_s = 0;
+        end
+        else if ($signed(a) < $signed(0)) begin
+            alu_div_s = -(-$signed(a) / $signed(b));
+            alu_rem_s = -(-$signed(a) % $signed(b));
+        end
+        else begin
+            alu_div_s = $signed(a) / $signed(b);
+            alu_rem_s = $signed(a) % $signed(b);
+        end
     end
 
     always_ff @(posedge clk) begin
