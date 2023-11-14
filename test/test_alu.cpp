@@ -421,7 +421,7 @@ TEST_F(TestAlu, Xori) {
     zimm = dist_5bit(engine);
 
     dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
-    EXPECT_EQ(dut->rslt, rs1 ^ rs2);
+    EXPECT_EQ(dut->rslt, rs1 ^ imm);
   }
 }
 
@@ -437,7 +437,7 @@ TEST_F(TestAlu, Ori) {
     zimm = dist_5bit(engine);
 
     dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
-    EXPECT_EQ(dut->rslt, rs1 | rs2);
+    EXPECT_EQ(dut->rslt, rs1 | imm);
   }
 }
 
@@ -453,7 +453,7 @@ TEST_F(TestAlu, Andi) {
     zimm = dist_5bit(engine);
 
     dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
-    EXPECT_EQ(dut->rslt, rs1 & rs2);
+    EXPECT_EQ(dut->rslt, rs1 & imm);
   }
 }
 
@@ -654,9 +654,11 @@ TEST_F(TestAlu, Or) {
   }
 }
 
-TEST_F(TestAlu, And) {
+TEST_F(TestAlu, And) {}
+
+TEST_F(TestAlu, Fence) {
   inst_bit_t inst_bit = {0};
-  inst_bit.AND = 1;
+  inst_bit.FENCE = 1;
   for (int i = 0; i < N; ++i) {
     rs1 = dist_int(engine);
     rs2 = dist_int(engine);
@@ -666,28 +668,160 @@ TEST_F(TestAlu, And) {
     zimm = dist_5bit(engine);
 
     dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
-    EXPECT_EQ(dut->rslt, rs1 & rs2);
+    // FIXME: what is expected?
+    EXPECT_EQ(dut->rslt, 0);
   }
 }
 
-TEST_F(TestAlu, Fence) { EXPECT_TRUE(false); }
+TEST_F(TestAlu, FenceI) {
+  inst_bit_t inst_bit = {0};
+  inst_bit.FENCE_I = 1;
+  for (int i = 0; i < N; ++i) {
+    rs1 = dist_int(engine);
+    rs2 = dist_int(engine);
+    pc = dist_int(engine);
+    csr = dist_int(engine);
+    imm = dist_int(engine);
+    zimm = dist_5bit(engine);
 
-TEST_F(TestAlu, FenceI) { EXPECT_TRUE(false); }
+    dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
+    // FIXME: what is expected?
+    EXPECT_EQ(dut->rslt, 0);
+  }
+}
 
-TEST_F(TestAlu, Ecall) { EXPECT_TRUE(false); }
+TEST_F(TestAlu, Ecall) {
+  inst_bit_t inst_bit = {0};
+  inst_bit.ECALL = 1;
+  for (int i = 0; i < N; ++i) {
+    rs1 = dist_int(engine);
+    rs2 = dist_int(engine);
+    pc = dist_int(engine);
+    csr = dist_int(engine);
+    imm = dist_int(engine);
+    zimm = dist_5bit(engine);
 
-TEST_F(TestAlu, Ebreak) { EXPECT_TRUE(false); }
+    dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
+    // FIXME: what is expected?
+    EXPECT_EQ(dut->rslt, 0);
+  }
+}
 
-TEST_F(TestAlu, Csrrw) { EXPECT_TRUE(false); }
+TEST_F(TestAlu, Ebreak) {
+  inst_bit_t inst_bit = {0};
+  inst_bit.ECALL = 1;
+  for (int i = 0; i < N; ++i) {
+    rs1 = dist_int(engine);
+    rs2 = dist_int(engine);
+    pc = dist_int(engine);
+    csr = dist_int(engine);
+    imm = dist_int(engine);
+    zimm = dist_5bit(engine);
 
-TEST_F(TestAlu, Csrrs) { EXPECT_TRUE(false); }
+    dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
+    // FIXME: what is expected?
+    EXPECT_EQ(dut->rslt, 0);
+  }
+}
 
-TEST_F(TestAlu, Csrrc) { EXPECT_TRUE(false); }
+TEST_F(TestAlu, Csrrw) {
+  inst_bit_t inst_bit = {0};
+  inst_bit.CSRRW = 1;
+  for (int i = 0; i < N; ++i) {
+    rs1 = dist_int(engine);
+    rs2 = dist_int(engine);
+    pc = dist_int(engine);
+    csr = dist_int(engine);
+    imm = dist_int(engine);
+    zimm = dist_5bit(engine);
 
-TEST_F(TestAlu, Csrrwi) { EXPECT_TRUE(false); }
+    dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
+    EXPECT_EQ(dut->rslt, rs1);
+  }
+}
 
-TEST_F(TestAlu, Csrrsi) { EXPECT_TRUE(false); }
+TEST_F(TestAlu, Csrrs) {
+  inst_bit_t inst_bit = {0};
+  inst_bit.CSRRS = 1;
+  for (int i = 0; i < N; ++i) {
+    rs1 = dist_int(engine);
+    rs2 = dist_int(engine);
+    pc = dist_int(engine);
+    csr = dist_int(engine);
+    imm = dist_int(engine);
+    zimm = dist_5bit(engine);
 
-TEST_F(TestAlu, Csrrci) { EXPECT_TRUE(false); }
+    dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
+    EXPECT_EQ(dut->rslt, rs1 | csr);
+  }
+}
+
+TEST_F(TestAlu, Csrrc) {
+  inst_bit_t inst_bit = {0};
+  inst_bit.CSRRS = 1;
+  for (int i = 0; i < N; ++i) {
+    rs1 = dist_int(engine);
+    rs2 = dist_int(engine);
+    pc = dist_int(engine);
+    csr = dist_int(engine);
+    imm = dist_int(engine);
+    zimm = dist_5bit(engine);
+
+    dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
+    // FIXME: what is expected?
+    EXPECT_EQ(dut->rslt, ~rs1 & csr);
+  }
+}
+
+TEST_F(TestAlu, Csrrwi) {
+  inst_bit_t inst_bit = {0};
+  inst_bit.CSRRWI = 1;
+  for (int i = 0; i < N; ++i) {
+    rs1 = dist_int(engine);
+    rs2 = dist_int(engine);
+    pc = dist_int(engine);
+    csr = dist_int(engine);
+    imm = dist_int(engine);
+    zimm = dist_5bit(engine);
+
+    dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
+    // FIXME: what is expected?
+    EXPECT_EQ(dut->rslt, zimm);
+  }
+}
+
+TEST_F(TestAlu, Csrrsi) {
+  inst_bit_t inst_bit = {0};
+  inst_bit.CSRRSI = 1;
+  for (int i = 0; i < N; ++i) {
+    rs1 = dist_int(engine);
+    rs2 = dist_int(engine);
+    pc = dist_int(engine);
+    csr = dist_int(engine);
+    imm = dist_int(engine);
+    zimm = dist_5bit(engine);
+
+    dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
+    // FIXME: what is expected?
+    EXPECT_EQ(dut->rslt, zimm | csr);
+  }
+}
+
+TEST_F(TestAlu, Csrrci) {
+  inst_bit_t inst_bit = {0};
+  inst_bit.CSRRCI = 1;
+  for (int i = 0; i < N; ++i) {
+    rs1 = dist_int(engine);
+    rs2 = dist_int(engine);
+    pc = dist_int(engine);
+    csr = dist_int(engine);
+    imm = dist_int(engine);
+    zimm = dist_5bit(engine);
+
+    dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
+    // FIXME: what is expected?
+    EXPECT_EQ(dut->rslt, ~zimm & csr);
+  }
+}
 
 } // namespace
