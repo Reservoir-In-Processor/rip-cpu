@@ -89,7 +89,12 @@ TEST_F(TestAlu, Auipc) {
     zimm = dist_5bit(engine);
 
     dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
-    EXPECT_EQ(dut->rslt, pc + imm);
+    // to avoid overflow.
+    union {
+      unsigned un;
+      int in;
+    } u = {.un = (unsigned)pc + (unsigned)imm};
+    EXPECT_EQ(dut->rslt, u.in);
   }
 }
 
@@ -243,7 +248,11 @@ TEST_F(TestAlu, Lb) {
     zimm = dist_5bit(engine);
 
     dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
-    EXPECT_EQ(dut->rslt, rs1 + imm);
+    union {
+      unsigned un;
+      int in;
+    } u = {.un = (unsigned)rs1 + (unsigned)imm};
+    EXPECT_EQ(dut->rslt, u.in);
   }
 }
 
@@ -260,7 +269,11 @@ TEST_F(TestAlu, Lh) {
     zimm = dist_5bit(engine);
 
     dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
-    EXPECT_EQ(dut->rslt, rs1 + imm);
+    union {
+      unsigned un;
+      int in;
+    } u = {.un = (unsigned)rs1 + (unsigned)imm};
+    EXPECT_EQ(dut->rslt, u.in);
   }
 }
 
@@ -277,7 +290,11 @@ TEST_F(TestAlu, Lw) {
     zimm = dist_5bit(engine);
 
     dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
-    EXPECT_EQ(dut->rslt, rs1 + imm);
+    union {
+      unsigned un;
+      int in;
+    } u = {.un = (unsigned)rs1 + (unsigned)imm};
+    EXPECT_EQ(dut->rslt, u.in);
   }
 }
 
@@ -293,7 +310,11 @@ TEST_F(TestAlu, Lbu) {
     zimm = dist_5bit(engine);
 
     dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
-    EXPECT_EQ(dut->rslt, rs1 + imm);
+    union {
+      unsigned un;
+      int in;
+    } u = {.un = (unsigned)rs1 + (unsigned)imm};
+    EXPECT_EQ(dut->rslt, u.in);
   }
 }
 
@@ -309,7 +330,11 @@ TEST_F(TestAlu, Lhu) {
     zimm = dist_5bit(engine);
 
     dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
-    EXPECT_EQ(dut->rslt, rs1 + imm);
+    union {
+      unsigned un;
+      int in;
+    } u = {.un = (unsigned)rs1 + (unsigned)imm};
+    EXPECT_EQ(dut->rslt, u.in);
   }
 }
 
@@ -325,7 +350,11 @@ TEST_F(TestAlu, Sb) {
     zimm = dist_5bit(engine);
 
     dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
-    EXPECT_EQ(dut->rslt, rs1 + imm);
+    union {
+      unsigned un;
+      int in;
+    } u = {.un = (unsigned)rs1 + (unsigned)imm};
+    EXPECT_EQ(dut->rslt, u.in);
   }
 }
 
@@ -341,7 +370,11 @@ TEST_F(TestAlu, Sh) {
     zimm = dist_5bit(engine);
 
     dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
-    EXPECT_EQ(dut->rslt, rs1 + imm);
+    union {
+      unsigned un;
+      int in;
+    } u = {.un = (unsigned)rs1 + (unsigned)imm};
+    EXPECT_EQ(dut->rslt, u.in);
   }
 }
 
@@ -357,7 +390,12 @@ TEST_F(TestAlu, Sw) {
     zimm = dist_5bit(engine);
 
     dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
-    EXPECT_EQ(dut->rslt, rs1 + imm);
+    // To avoid signed overflow
+    union {
+      unsigned un;
+      int in;
+    } u = {.un = (unsigned)rs1 + (unsigned)imm};
+    EXPECT_EQ(dut->rslt, u.in);
   }
 }
 
@@ -373,7 +411,12 @@ TEST_F(TestAlu, Addi) {
     zimm = dist_5bit(engine);
 
     dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
-    EXPECT_EQ(dut->rslt, rs1 + imm);
+    // To avoid signed overflow
+    union {
+      unsigned un;
+      int in;
+    } u = {.un = (unsigned)rs1 + (unsigned)imm};
+    EXPECT_EQ(dut->rslt, u.in);
   }
 }
 
@@ -469,7 +512,7 @@ TEST_F(TestAlu, Slli) {
     zimm = dist_5bit(engine);
 
     dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
-    EXPECT_EQ(dut->rslt, rs1 << (imm & 0x1f));
+    EXPECT_EQ(dut->rslt, (signed)((unsigned)rs1 << (imm & 0x1f)));
   }
 }
 
@@ -519,7 +562,12 @@ TEST_F(TestAlu, Add) {
     zimm = dist_5bit(engine);
 
     dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
-    EXPECT_EQ(dut->rslt, rs1 + rs2);
+    // To avoid signed overflow
+    union {
+      unsigned un;
+      int in;
+    } u = {.un = (unsigned)rs1 + (unsigned)rs2};
+    EXPECT_EQ(dut->rslt, u.in);
   }
 }
 
@@ -535,7 +583,12 @@ TEST_F(TestAlu, Sub) {
     zimm = dist_5bit(engine);
 
     dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
-    EXPECT_EQ(dut->rslt, rs1 - rs2);
+    // To avoid signed overflow
+    union {
+      unsigned un;
+      int in;
+    } u = {.un = (unsigned)rs1 - (unsigned)rs2};
+    EXPECT_EQ(dut->rslt, u.in);
   }
 }
 
@@ -552,7 +605,8 @@ TEST_F(TestAlu, Sll) {
 
     dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
     unsigned shamt = rs2 & 0x1f;
-    EXPECT_EQ(dut->rslt, rs1 << shamt);
+    // to avoid overflow
+    EXPECT_EQ(dut->rslt, (signed)((unsigned)rs1 << shamt));
   }
 }
 
@@ -821,6 +875,247 @@ TEST_F(TestAlu, Csrrci) {
     dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
     // FIXME: what is expected?
     EXPECT_EQ(dut->rslt, ~zimm & csr);
+  }
+}
+
+/* RV32M */
+
+TEST_F(TestAlu, MUL) {
+  inst_bit_t inst_bit = {0};
+  inst_bit.MUL = 1;
+  for (int i = 0; i < N; ++i) {
+    rs1 = dist_int(engine);
+    rs2 = dist_int(engine);
+    pc = dist_int(engine);
+    csr = dist_int(engine);
+    imm = dist_int(engine);
+    zimm = dist_5bit(engine);
+
+    dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
+
+    EXPECT_EQ(dut->rslt,
+              ((signed long long)rs1 * (signed long long)rs2) & 0xffffffff);
+  }
+}
+
+TEST_F(TestAlu, MULH) {
+  inst_bit_t inst_bit = {0};
+  inst_bit.MULH = 1;
+  for (int i = 0; i < N; ++i) {
+    rs1 = dist_int(engine);
+    rs2 = dist_int(engine);
+    pc = dist_int(engine);
+    csr = dist_int(engine);
+    imm = dist_int(engine);
+    zimm = dist_5bit(engine);
+
+    dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
+    EXPECT_EQ(dut->rslt, (unsigned long long)((signed long long)rs1 *
+                                              (signed long long)rs2) >>
+                             32)
+        << "rs1=" << rs1 << ", rs2=" << rs2;
+  }
+}
+
+TEST_F(TestAlu, MULHSU) {
+  inst_bit_t inst_bit = {0};
+  inst_bit.MULHSU = 1;
+  for (int i = 0; i < N; ++i) {
+    rs1 = dist_int(engine);
+    rs2 = dist_int(engine);
+    pc = dist_int(engine);
+    csr = dist_int(engine);
+    imm = dist_int(engine);
+    zimm = dist_5bit(engine);
+
+    dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
+    EXPECT_EQ(dut->rslt,
+              (unsigned long long)((signed long long)rs1 *
+                                   (unsigned long long)(unsigned)rs2) >>
+                  32)
+        << "rs1=" << rs1 << ", rs2=" << rs2;
+  }
+}
+
+TEST_F(TestAlu, MULHU) {
+  inst_bit_t inst_bit = {0};
+  inst_bit.MULHSU = 1;
+  for (int i = 0; i < N; ++i) {
+    rs1 = dist_int(engine);
+    rs2 = dist_int(engine);
+    pc = dist_int(engine);
+    csr = dist_int(engine);
+    imm = dist_int(engine);
+    zimm = dist_5bit(engine);
+
+    dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
+    EXPECT_EQ(dut->rslt, ((unsigned long long)(unsigned)rs1 *
+                          (unsigned long long)(unsigned)rs2) >>
+                             32);
+  }
+}
+
+TEST_F(TestAlu, DIV) {
+  inst_bit_t inst_bit = {0};
+  inst_bit.DIV = 1;
+  for (int i = 0; i < N; ++i) {
+    rs1 = dist_int(engine);
+    rs2 = dist_int(engine);
+    pc = dist_int(engine);
+    csr = dist_int(engine);
+    imm = dist_int(engine);
+    zimm = dist_5bit(engine);
+
+    dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
+    // TODO: rounding test
+    EXPECT_EQ(dut->rslt, rs1 / rs2);
+  }
+}
+
+TEST_F(TestAlu, DIVZERO) {
+  inst_bit_t inst_bit = {0};
+  inst_bit.DIV = 1;
+  for (int i = 0; i < N; ++i) {
+    rs1 = dist_int(engine);
+    pc = dist_int(engine);
+    csr = dist_int(engine);
+    imm = dist_int(engine);
+    zimm = dist_5bit(engine);
+
+    dut->exec(inst_bit, rs1, 0, pc, csr, imm, zimm);
+    // TODO: rounding test
+    EXPECT_EQ(dut->rslt, -1);
+  }
+}
+
+TEST_F(TestAlu, DIVMIN) {
+  inst_bit_t inst_bit = {0};
+  inst_bit.DIV = 1;
+  for (int i = 0; i < N; ++i) {
+    rs1 = dist_int(engine);
+    pc = dist_int(engine);
+    csr = dist_int(engine);
+    imm = dist_int(engine);
+    zimm = dist_5bit(engine);
+
+    dut->exec(inst_bit, INT_MIN, -1, pc, csr, imm, zimm);
+    // TODO: rounding test
+    EXPECT_EQ(dut->rslt, INT_MIN);
+  }
+}
+
+TEST_F(TestAlu, DIVU) {
+  inst_bit_t inst_bit = {0};
+  inst_bit.DIVU = 1;
+  for (int i = 0; i < N; ++i) {
+    rs1 = dist_int(engine);
+    rs2 = dist_int(engine);
+    pc = dist_int(engine);
+    csr = dist_int(engine);
+    imm = dist_int(engine);
+    zimm = dist_5bit(engine);
+
+    dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
+    // TODO: rounding test
+    EXPECT_EQ(dut->rslt, (unsigned)rs1 / (unsigned)rs2);
+  }
+}
+
+TEST_F(TestAlu, DIVUZERO) {
+  inst_bit_t inst_bit = {0};
+  inst_bit.DIVU = 1;
+  for (int i = 0; i < N; ++i) {
+    rs1 = dist_int(engine);
+    pc = dist_int(engine);
+    csr = dist_int(engine);
+    imm = dist_int(engine);
+    zimm = dist_5bit(engine);
+
+    dut->exec(inst_bit, rs1, 0, pc, csr, imm, zimm);
+    // TODO: rounding test
+    EXPECT_EQ(dut->rslt, UINT32_MAX);
+  }
+}
+
+TEST_F(TestAlu, REM) {
+  inst_bit_t inst_bit = {0};
+  inst_bit.REM = 1;
+  for (int i = 0; i < N; ++i) {
+    rs1 = dist_int(engine);
+    rs2 = dist_int(engine);
+    pc = dist_int(engine);
+    csr = dist_int(engine);
+    imm = dist_int(engine);
+    zimm = dist_5bit(engine);
+
+    dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
+    // TODO: rounding test
+    EXPECT_EQ(dut->rslt, rs1 % rs2);
+  }
+}
+
+TEST_F(TestAlu, REMZERO) {
+  inst_bit_t inst_bit = {0};
+  inst_bit.REM = 1;
+  for (int i = 0; i < N; ++i) {
+    rs1 = dist_int(engine);
+    pc = dist_int(engine);
+    csr = dist_int(engine);
+    imm = dist_int(engine);
+    zimm = dist_5bit(engine);
+
+    dut->exec(inst_bit, rs1, 0, pc, csr, imm, zimm);
+    // TODO: rounding test
+    EXPECT_EQ(dut->rslt, rs1);
+  }
+}
+
+TEST_F(TestAlu, REMMIN) {
+  inst_bit_t inst_bit = {0};
+  inst_bit.DIV = 1;
+  for (int i = 0; i < N; ++i) {
+    rs1 = dist_int(engine);
+    pc = dist_int(engine);
+    csr = dist_int(engine);
+    imm = dist_int(engine);
+    zimm = dist_5bit(engine);
+
+    dut->exec(inst_bit, INT_MIN, -1, pc, csr, imm, zimm);
+    // TODO: rounding test
+    EXPECT_EQ(dut->rslt, 0);
+  }
+}
+
+TEST_F(TestAlu, REMU) {
+  inst_bit_t inst_bit = {0};
+  inst_bit.REMU = 1;
+  for (int i = 0; i < N; ++i) {
+    rs1 = dist_int(engine);
+    rs2 = dist_int(engine);
+    pc = dist_int(engine);
+    csr = dist_int(engine);
+    imm = dist_int(engine);
+    zimm = dist_5bit(engine);
+
+    dut->exec(inst_bit, rs1, rs2, pc, csr, imm, zimm);
+    // TODO: rounding test
+    EXPECT_EQ(dut->rslt, (unsigned)rs1 % (unsigned)rs2);
+  }
+}
+
+TEST_F(TestAlu, REMUZERO) {
+  inst_bit_t inst_bit = {0};
+  inst_bit.REMU = 1;
+  for (int i = 0; i < N; ++i) {
+    rs1 = dist_int(engine);
+    pc = dist_int(engine);
+    csr = dist_int(engine);
+    imm = dist_int(engine);
+    zimm = dist_5bit(engine);
+
+    dut->exec(inst_bit, rs1, 0, pc, csr, imm, zimm);
+    // TODO: rounding test
+    EXPECT_EQ(dut->rslt, rs1);
   }
 }
 
