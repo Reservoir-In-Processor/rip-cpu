@@ -143,7 +143,10 @@ module rip_alu (
             else if (inst.BGEU) begin
                 rslt <= {31'b0, alu_geu};
             end
-            else if (inst.LUI | inst.AUIPC | inst.JAL | inst.JALR | inst.LB | inst.LH | inst.LW |
+            else if (inst.LUI) begin
+                rslt <= imm;
+            end
+            else if (inst.AUIPC | inst.JAL | inst.JALR | inst.LB | inst.LH | inst.LW |
                      inst.LBU | inst.LHU | inst.SB | inst.SH | inst.SW | inst.ADDI | inst.ADD |
                      inst.SUB) begin
                 rslt <= alu_add_sub;
