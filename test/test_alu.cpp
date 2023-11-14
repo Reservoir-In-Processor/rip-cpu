@@ -232,7 +232,7 @@ TEST_F(TestAlu, Bgeu) {
 
 TEST_F(TestAlu, Lb) {
   inst_bit_t inst_bit = {0};
-  inst_bit.BGEU = 1;
+  inst_bit.LB = 1;
   inst_bit.ACCESS_MEM = 1;
   for (int i = 0; i < N; ++i) {
     rs1 = dist_int(engine);
@@ -758,7 +758,7 @@ TEST_F(TestAlu, Csrrs) {
 
 TEST_F(TestAlu, Csrrc) {
   inst_bit_t inst_bit = {0};
-  inst_bit.CSRRS = 1;
+  inst_bit.CSRRC = 1;
   for (int i = 0; i < N; ++i) {
     rs1 = dist_int(engine);
     rs2 = dist_int(engine);
