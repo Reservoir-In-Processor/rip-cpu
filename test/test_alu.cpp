@@ -939,7 +939,7 @@ TEST_F(TestAlu, MULHSU) {
 
 TEST_F(TestAlu, MULHU) {
   inst_bit_t inst_bit = {0};
-  inst_bit.MULHSU = 1;
+  inst_bit.MULHU = 1;
   for (int i = 0; i < N; ++i) {
     rs1 = dist_int(engine);
     rs2 = dist_int(engine);
@@ -1072,7 +1072,7 @@ TEST_F(TestAlu, REMZERO) {
 
 TEST_F(TestAlu, REMMIN) {
   inst_bit_t inst_bit = {0};
-  inst_bit.DIV = 1;
+  inst_bit.REM = 1;
   for (int i = 0; i < N; ++i) {
     rs1 = dist_int(engine);
     pc = dist_int(engine);
