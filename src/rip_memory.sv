@@ -81,32 +81,36 @@ module rip_memory (
 
         if (ma_inst.LB) begin
             case (ma_mem_offset)
-                2'b00: ma_dout = {{24{ma_mem_rdata[7]}}, ma_mem_rdata[7:0]};
-                2'b01: ma_dout = {{24{ma_mem_rdata[15]}}, ma_mem_rdata[15:8]};
-                2'b10: ma_dout = {{24{ma_mem_rdata[23]}}, ma_mem_rdata[23:16]};
-                2'b11: ma_dout = {{24{ma_mem_rdata[31]}}, ma_mem_rdata[31:24]};
+                2'b00:   ma_dout = {{24{ma_mem_rdata[7]}}, ma_mem_rdata[7:0]};
+                2'b01:   ma_dout = {{24{ma_mem_rdata[15]}}, ma_mem_rdata[15:8]};
+                2'b10:   ma_dout = {{24{ma_mem_rdata[23]}}, ma_mem_rdata[23:16]};
+                2'b11:   ma_dout = {{24{ma_mem_rdata[31]}}, ma_mem_rdata[31:24]};
+                default: ma_dout = 32'hFFFFFFFF;
             endcase
         end
         else if (ma_inst.LH) begin
             casez (ma_mem_offset)
-                2'b00: ma_dout = {{16{ma_mem_rdata[15]}}, ma_mem_rdata[15:0]};
-                2'b01: ma_dout = {{16{ma_mem_rdata[23]}}, ma_mem_rdata[23:8]};
-                2'b1?: ma_dout = {{16{ma_mem_rdata[31]}}, ma_mem_rdata[31:16]};
+                2'b00:   ma_dout = {{16{ma_mem_rdata[15]}}, ma_mem_rdata[15:0]};
+                2'b01:   ma_dout = {{16{ma_mem_rdata[23]}}, ma_mem_rdata[23:8]};
+                2'b1?:   ma_dout = {{16{ma_mem_rdata[31]}}, ma_mem_rdata[31:16]};
+                default: ma_dout = 32'hFFFFFFFF;
             endcase
         end
         else if (ma_inst.LBU) begin
             case (ma_mem_offset)
-                2'b00: ma_dout = {24'b0, ma_mem_rdata[7:0]};
-                2'b01: ma_dout = {24'b0, ma_mem_rdata[15:8]};
-                2'b10: ma_dout = {24'b0, ma_mem_rdata[23:16]};
-                2'b11: ma_dout = {24'b0, ma_mem_rdata[31:24]};
+                2'b00:   ma_dout = {24'b0, ma_mem_rdata[7:0]};
+                2'b01:   ma_dout = {24'b0, ma_mem_rdata[15:8]};
+                2'b10:   ma_dout = {24'b0, ma_mem_rdata[23:16]};
+                2'b11:   ma_dout = {24'b0, ma_mem_rdata[31:24]};
+                default: ma_dout = 32'hFFFFFFFF;
             endcase
         end
         else if (ma_inst.LHU) begin
             casez (ma_mem_offset)
-                2'b00: ma_dout = {16'b0, ma_mem_rdata[15:0]};
-                2'b01: ma_dout = {16'b0, ma_mem_rdata[23:8]};
-                2'b1?: ma_dout = {16'b0, ma_mem_rdata[31:16]};
+                2'b00:   ma_dout = {16'b0, ma_mem_rdata[15:0]};
+                2'b01:   ma_dout = {16'b0, ma_mem_rdata[23:8]};
+                2'b1?:   ma_dout = {16'b0, ma_mem_rdata[31:16]};
+                default: ma_dout = 32'hFFFFFFFF;
             endcase
         end
         else if (ma_inst.LW) begin
@@ -121,8 +125,7 @@ module rip_memory (
         if (ma_ready) begin
             for (integer i = 0; i < NUM_COL; i = i + 1) begin
                 if (ex_mem_we[i]) begin
-                    mem_block[ex_mem_addr][i*B_WIDTH+:B_WIDTH] <=
-                        ex_mem_wdata[i*B_WIDTH+:B_WIDTH];
+                    mem_block[ex_mem_addr][i*B_WIDTH+:B_WIDTH] <= ex_mem_wdata[i*B_WIDTH+:B_WIDTH];
                 end
             end
             ma_mem_rdata <= mem_block[ex_mem_addr];
