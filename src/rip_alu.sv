@@ -89,9 +89,9 @@ module rip_alu (
         alu_or      = a | b;
         alu_and     = a & b;
         alu_clear   = ~a & b;
-        alu_mul_ss  = $signed($signed({{32{a[31]}}, a}) * $signed({{32{b[31]}}, b}));
-        alu_mul_su  = $signed($signed({{32{a[31]}}, a}) * $signed({32'h0, b}));
-        alu_mul_uu  = $signed($signed({32'h0, a}) * $signed({32'h0, b}));
+        alu_mul_ss  = $signed(a) * $signed(b);
+        alu_mul_su  = $signed(a) * $signed({32'h0, b});
+        alu_mul_uu  = a * b;
 
         if (b == '0) begin
             alu_div_u = '1;
@@ -179,7 +179,7 @@ module rip_alu (
                 rslt <= alu_mul_uu[31:0];
             end
             else if (inst.MULH) begin
-                rslt <= alu_mul_uu[63:32];
+                rslt <= alu_mul_ss[63:32];
             end
             else if (inst.MULHSU) begin
                 rslt <= alu_mul_su[63:32];
