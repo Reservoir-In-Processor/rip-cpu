@@ -7,6 +7,7 @@ module rip_regfile (
     input rst_n,
     input clk,
 
+    input de_ready,
     input [4:0] ma_rd_num,
     input wen,
     input [31:0] wdata,
@@ -48,7 +49,7 @@ module rip_regfile (
             rs1 <= 0;
             rs2 <= 0;
         end
-        else begin
+        else if (de_ready) begin
             rs1 <= wen && (ma_rd_num == if_rs1_num) ? wdata : regfile[if_rs1_num];
             rs2 <= wen && (ma_rd_num == if_rs2_num) ? wdata : regfile[if_rs2_num];
         end

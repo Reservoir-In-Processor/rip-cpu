@@ -471,6 +471,7 @@ module rip_core (
         .rst_n(rst_n),
         .clk  (clk),
 
+        .de_ready(de_state.READY),
         .ma_rd_num(ma_rd_num),
         .wen(ma_reg_wen),
         .wdata(ma_wdata),
