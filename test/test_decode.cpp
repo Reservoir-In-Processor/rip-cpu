@@ -769,6 +769,126 @@ TEST_F(TestDecode, Csrrci) {
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
+TEST_F(TestDecode, Mul) {
+    dut->set_inst_code(0x02320333);  // mul x6, x4, x3
+
+    EXPECT_EQ(dut->de_rs1_num, 4);
+    EXPECT_EQ(dut->de_rs2_num, 3);
+    EXPECT_EQ(dut->de_rd_num, 6);
+    EXPECT_EQ(dut->imm, 0);
+
+    EXPECT_EQ(dut->get_inst_name(), "MUL");
+    EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
+    EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
+}
+
+TEST_F(TestDecode, Mulh) {
+    dut->set_inst_code(0x02321333);  // mulh x6, x4, x3
+
+    EXPECT_EQ(dut->de_rs1_num, 4);
+    EXPECT_EQ(dut->de_rs2_num, 3);
+    EXPECT_EQ(dut->de_rd_num, 6);
+    EXPECT_EQ(dut->imm, 0);
+
+    EXPECT_EQ(dut->get_inst_name(), "MULH");
+    EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
+    EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
+}
+
+TEST_F(TestDecode, Mulhsu) {
+    dut->set_inst_code(0x02322333);  // mulhsu x6, x4, x3
+
+    EXPECT_EQ(dut->de_rs1_num, 4);
+    EXPECT_EQ(dut->de_rs2_num, 3);
+    EXPECT_EQ(dut->de_rd_num, 6);
+    EXPECT_EQ(dut->imm, 0);
+
+    EXPECT_EQ(dut->get_inst_name(), "MULHSU");
+    EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
+    EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
+}
+
+TEST_F(TestDecode, Mulhu) {
+    dut->set_inst_code(0x02323333);  // mulhu x6, x4, x3
+
+    EXPECT_EQ(dut->de_rs1_num, 4);
+    EXPECT_EQ(dut->de_rs2_num, 3);
+    EXPECT_EQ(dut->de_rd_num, 6);
+    EXPECT_EQ(dut->imm, 0);
+
+    EXPECT_EQ(dut->get_inst_name(), "MULHU");
+    EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
+    EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
+}
+
+TEST_F(TestDecode, Div) {
+    dut->set_inst_code(0x02324333);  // div x6, x4, x3
+
+    EXPECT_EQ(dut->de_rs1_num, 4);
+    EXPECT_EQ(dut->de_rs2_num, 3);
+    EXPECT_EQ(dut->de_rd_num, 6);
+    EXPECT_EQ(dut->imm, 0);
+
+    EXPECT_EQ(dut->get_inst_name(), "DIV");
+    EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
+    EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
+}
+
+TEST_F(TestDecode, Divu) {
+    dut->set_inst_code(0x02325333);  // divu x6, x4, x3
+
+    EXPECT_EQ(dut->de_rs1_num, 4);
+    EXPECT_EQ(dut->de_rs2_num, 3);
+    EXPECT_EQ(dut->de_rd_num, 6);
+    EXPECT_EQ(dut->imm, 0);
+
+    EXPECT_EQ(dut->get_inst_name(), "DIVU");
+    EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
+    EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
+}
+
+TEST_F(TestDecode, Rem) {
+    dut->set_inst_code(0x02326333);  // rem x6, x4, x3
+
+    EXPECT_EQ(dut->de_rs1_num, 4);
+    EXPECT_EQ(dut->de_rs2_num, 3);
+    EXPECT_EQ(dut->de_rd_num, 6);
+    EXPECT_EQ(dut->imm, 0);
+
+    EXPECT_EQ(dut->get_inst_name(), "REM");
+    EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
+    EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
+}
+
+TEST_F(TestDecode, Remu) {
+    dut->set_inst_code(0x02327333);  // remu x6, x4, x3
+
+    EXPECT_EQ(dut->de_rs1_num, 4);
+    EXPECT_EQ(dut->de_rs2_num, 3);
+    EXPECT_EQ(dut->de_rd_num, 6);
+    EXPECT_EQ(dut->imm, 0);
+
+    EXPECT_EQ(dut->get_inst_name(), "REMU");
+    EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
+    EXPECT_TRUE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
+}
+
 TEST_F(TestDecode, AddiNoRegUpdate) {
     dut->set_inst_code(0x00000013);  // addi x0, x0, 0 (NOP)
 
