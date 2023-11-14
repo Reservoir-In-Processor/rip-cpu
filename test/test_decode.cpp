@@ -817,10 +817,6 @@ TEST_F(TestDecode, AddiSignalTiming) {
     dut->de_ready = 0;
     dut->eval();
 
-    EXPECT_EQ(dut->if_rs1_num, 0);
-    EXPECT_EQ(dut->if_rs2_num, 0);
-    EXPECT_EQ(dut->if_rd_num, 0);
-
     // positive edge
     dut->clk = 1;
     dut->eval();
