@@ -99,11 +99,10 @@ module rip_decode (
     end
 
     // register number
-    assign if_rd_num = de_ready & (r_type | i_type | u_type | j_type | csr_type | csr_i_type) ?
+    assign if_rd_num = (r_type | i_type | u_type | j_type | csr_type | csr_i_type) ?
         inst_code[11:7] : 5'b0;
-    assign if_rs1_num = de_ready & (r_type | i_type | s_type | b_type | csr_type) ?
-        inst_code[19:15] : 5'b0;
-    assign if_rs2_num = de_ready & (r_type | s_type | b_type) ? inst_code[24:20] : 5'b0;
+    assign if_rs1_num = (r_type | i_type | s_type | b_type | csr_type) ? inst_code[19:15] : 5'b0;
+    assign if_rs2_num = (r_type | s_type | b_type) ? inst_code[24:20] : 5'b0;
 
     always_ff @(posedge clk) begin
         if (!rst_n) begin
@@ -228,4 +227,4 @@ module rip_decode (
             inst <= 0;
         end
     end
-endmodule: rip_decode
+endmodule : rip_decode
