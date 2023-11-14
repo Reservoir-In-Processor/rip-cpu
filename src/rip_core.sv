@@ -3,9 +3,7 @@
 
 `include "rip_common.sv"
 
-module rip_core #(
-    parameter int START_ADDR = 32'h00008000
-) (
+module rip_core (
     input rst_n,
     input clk
 `ifdef VERILATOR
