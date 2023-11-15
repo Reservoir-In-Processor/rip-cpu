@@ -18,7 +18,9 @@ module rip_memory (
 
     input wire ma_ready,
     input rip_common::inst_t ex_inst,
+    input rip_common::inst_t ma_inst,
     input wire [rip_common::DATA_WIDTH-1:0] ex_addr,
+    input wire [rip_common::DATA_WIDTH-1:0] ma_addr,
     input wire [rip_common::DATA_WIDTH-1:0] ex_din,
     output wire [rip_common::DATA_WIDTH-1:0] ma_dout
 );
@@ -31,6 +33,7 @@ module rip_memory (
 
     logic [rip_common::ADDR_WIDTH-1:0] ex_mem_addr;
     logic [1:0] ex_mem_offset;
+    logic [1:0] ma_mem_offset;
     logic [rip_common::NUM_COL-1:0] ex_mem_we;
     logic [rip_common::DATA_WIDTH-1:0] ex_mem_wdata;
     logic [rip_common::DATA_WIDTH-1:0] ma_mem_rdata;
@@ -59,6 +62,7 @@ module rip_memory (
     always_comb begin
         ex_mem_addr   = ex_addr[ADDR_WIDTH+1:2];
         ex_mem_offset = ex_addr[1:0];
+        ma_mem_offset = ma_addr[1:0];
 
         for (integer i = 0; i < NUM_COL; i = i + 1) begin
             ex_mem_we[i] = ma_ready & ((ex_inst.SB && ex_mem_offset == i[1:0]) |
@@ -69,32 +73,51 @@ module rip_memory (
             ex_mem_wdata = {24'd0, ex_din[7:0]} << (ex_mem_offset * B_WIDTH);
         end
         else if (ex_inst.SH) begin
-            ex_mem_wdata = {16'd0, ex_din[15:0]} << (ex_mem_offset * B_WIDTH * 2);
+            ex_mem_wdata = {16'd0, ex_din[15:0]} << (ex_mem_offset * B_WIDTH);
         end
         else begin
             ex_mem_wdata = ex_din;
         end
 
-        if (ex_inst.LB) begin
-            ma_dout = {
-                {24{ma_mem_rdata[ex_mem_offset*B_WIDTH+7]}},
-                ma_mem_rdata[ex_mem_offset*B_WIDTH+:B_WIDTH]
-            };
+        if (ma_inst.LB) begin
+            case (ma_mem_offset)
+                2'b00:   ma_dout = {{24{ma_mem_rdata[7]}}, ma_mem_rdata[7:0]};
+                2'b01:   ma_dout = {{24{ma_mem_rdata[15]}}, ma_mem_rdata[15:8]};
+                2'b10:   ma_dout = {{24{ma_mem_rdata[23]}}, ma_mem_rdata[23:16]};
+                2'b11:   ma_dout = {{24{ma_mem_rdata[31]}}, ma_mem_rdata[31:24]};
+                default: ma_dout = 32'hFFFFFFFF;
+            endcase
         end
-        else if (ex_inst.LH) begin
-            ma_dout = {
-                {16{ma_mem_rdata[ex_mem_offset*B_WIDTH+15]}},
-                ma_mem_rdata[ex_mem_offset*B_WIDTH*2+:B_WIDTH*2]
-            };
+        else if (ma_inst.LH) begin
+            casez (ma_mem_offset)
+                2'b00:   ma_dout = {{16{ma_mem_rdata[15]}}, ma_mem_rdata[15:0]};
+                2'b01:   ma_dout = {{16{ma_mem_rdata[23]}}, ma_mem_rdata[23:8]};
+                2'b1?:   ma_dout = {{16{ma_mem_rdata[31]}}, ma_mem_rdata[31:16]};
+                default: ma_dout = 32'hFFFFFFFF;
+            endcase
         end
-        else if (ex_inst.LBU) begin
-            ma_dout = {{24{1'b0}}, ma_mem_rdata[ex_mem_offset*B_WIDTH+:B_WIDTH]};
+        else if (ma_inst.LBU) begin
+            case (ma_mem_offset)
+                2'b00:   ma_dout = {24'b0, ma_mem_rdata[7:0]};
+                2'b01:   ma_dout = {24'b0, ma_mem_rdata[15:8]};
+                2'b10:   ma_dout = {24'b0, ma_mem_rdata[23:16]};
+                2'b11:   ma_dout = {24'b0, ma_mem_rdata[31:24]};
+                default: ma_dout = 32'hFFFFFFFF;
+            endcase
         end
-        else if (ex_inst.LHU) begin
-            ma_dout = {{16{1'b0}}, ma_mem_rdata[ex_mem_offset*B_WIDTH*2+:B_WIDTH*2]};
+        else if (ma_inst.LHU) begin
+            casez (ma_mem_offset)
+                2'b00:   ma_dout = {16'b0, ma_mem_rdata[15:0]};
+                2'b01:   ma_dout = {16'b0, ma_mem_rdata[23:8]};
+                2'b1?:   ma_dout = {16'b0, ma_mem_rdata[31:16]};
+                default: ma_dout = 32'hFFFFFFFF;
+            endcase
+        end
+        else if (ma_inst.LW) begin
+            ma_dout = ma_mem_rdata;
         end
         else begin
-            ma_dout = ma_mem_rdata;
+            ma_dout = 32'hFFFFFFFF;
         end
     end
 
@@ -102,8 +125,7 @@ module rip_memory (
         if (ma_ready) begin
             for (integer i = 0; i < NUM_COL; i = i + 1) begin
                 if (ex_mem_we[i]) begin
-                    mem_block[ex_mem_addr][i*B_WIDTH+:B_WIDTH] <=
-                        ex_mem_wdata[i*B_WIDTH+:B_WIDTH];
+                    mem_block[ex_mem_addr][i*B_WIDTH+:B_WIDTH] <= ex_mem_wdata[i*B_WIDTH+:B_WIDTH];
                 end
             end
             ma_mem_rdata <= mem_block[ex_mem_addr];

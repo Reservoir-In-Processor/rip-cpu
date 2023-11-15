@@ -3,9 +3,7 @@
 
 `include "rip_common.sv"
 
-module rip_core #(
-    parameter int START_ADDR = 32'h00008000
-) (
+module rip_core (
     input rst_n,
     input clk
 `ifdef VERILATOR
@@ -92,7 +90,8 @@ module rip_core #(
 
     wire [31:0] if_dout;
 
-    assign if_inst_code = (de_state.READY & !ex_state.STALL) ? if_dout : 32'h0;
+    // assign if_inst_code = (de_state.READY & !ex_state.STALL) ? if_dout : 32'h0;
+    assign if_inst_code = if_dout;
 
     always_ff @(posedge clk) begin
         if (!rst_n) begin
@@ -176,6 +175,10 @@ module rip_core #(
                  de_rs1_num == ma_rd_num) begin
             de_rs1 = ma_wdata;
         end
+        else if (after_wb_state.READY && !wb_inst.UPDATE_CSR && wb_rd_num != 5'h0 &&
+                 de_rs1_num == wb_rd_num) begin
+            de_rs1 = wb_wdata;
+        end
         else begin
             de_rs1 = de_rs1_reg;
         end
@@ -187,6 +190,10 @@ module rip_core #(
         else if (wb_state.READY && !ma_inst.UPDATE_CSR && ma_rd_num != 5'h0 &&
                  de_rs2_num == ma_rd_num) begin
             de_rs2 = ma_wdata;
+        end
+        else if (after_wb_state.READY && !wb_inst.UPDATE_CSR && wb_rd_num != 5'h0 &&
+                 de_rs2_num == wb_rd_num) begin
+            de_rs2 = wb_wdata;
         end
         else begin
             de_rs2 = de_rs2_reg;
@@ -425,7 +432,9 @@ module rip_core #(
 
         .ma_ready(ma_state.READY),
         .ex_inst (ex_inst),
+        .ma_inst (ma_inst),
         .ex_addr (ex_alu_rslt),
+        .ma_addr (ma_alu_rslt),
         .ex_din  (ex_rs2),
         .ma_dout (ma_ram_dout)
     );
@@ -435,10 +444,14 @@ module rip_core #(
      * -------------------------------- */
 
     state_t wb_state;
+    inst_t wb_inst;
 
     wire ma_reg_wen;
     wire ma_csr_wen;
     logic [31:0] ma_wdata;
+
+    logic [4:0] wb_rd_num;
+    logic [31:0] wb_wdata;
 
     assign ma_reg_wen = wb_state.READY && ma_inst.UPDATE_REG;
     assign ma_csr_wen = wb_state.READY && ma_inst.UPDATE_CSR;
@@ -458,6 +471,7 @@ module rip_core #(
         .rst_n(rst_n),
         .clk  (clk),
 
+        .de_ready(de_state.READY),
         .ma_rd_num(ma_rd_num),
         .wen(ma_reg_wen),
         .wdata(ma_wdata),
@@ -472,6 +486,8 @@ module rip_core #(
     always_ff @(posedge clk) begin
         if (!rst_n) begin
             wb_state <= 3'b100;
+            wb_rd_num <= 5'h0;
+            wb_wdata  <= 32'h0;
         end
         else begin
             if (ma_state.INVALID) begin
@@ -481,12 +497,42 @@ module rip_core #(
                 wb_state <= 3'b001;
             end
         end
+
+        if (wb_state.READY) begin
+            wb_rd_num <= ma_rd_num;
+            wb_wdata  <= ma_wdata;
+            wb_inst   <= ma_inst;
+        end
+        else if (!after_wb_state.STALL) begin
+            wb_rd_num <= 5'h0;
+            wb_wdata  <= 32'h0;
+            wb_inst   <= 0;
+        end
     end
+
+    /* -------------------------------- *
+     * After WB (for forwarding)        *
+     * -------------------------------- */
+
+    state_t after_wb_state;
+
+    always_ff @(posedge clk) begin
+        if (!rst_n) begin
+            after_wb_state <= 3'b100;
+        end
+        else begin
+            if (wb_state.INVALID) begin
+                after_wb_state <= 3'b100;
+            end
+            else begin
+                after_wb_state <= 3'b001;
+            end
+        end
+    end
+
 
 `ifdef VERILATOR
     integer file_handle, t;
-    logic  after_wb_ready;
-    inst_t wb_inst;
     logic [31:0] de_inst_code, ex_inst_code, ma_inst_code, wb_inst_code;
     logic [31:0] ma_pc, wb_pc;
     logic finished;
@@ -511,14 +557,12 @@ module rip_core #(
         t <= t + 10;
 
         if (!rst_n) begin
-            after_wb_ready <= 1'b0;
             de_inst_code   <= 32'h0;
             ex_inst_code   <= 32'h0;
             ma_inst_code   <= 32'h0;
             wb_inst_code   <= 32'h0;
         end
         else begin
-            after_wb_ready <= wb_state.READY;
             if (de_state.READY) de_inst_code <= if_inst_code;
             if (ex_state.READY) ex_inst_code <= de_inst_code;
             if (ma_state.READY) begin
@@ -526,13 +570,12 @@ module rip_core #(
                 ma_pc        <= ex_pc;
             end
             if (wb_state.READY) begin
-                wb_inst      <= ma_inst;
                 wb_inst_code <= ma_inst_code;
                 wb_pc        <= ma_pc;
             end
         end
 
-        if (after_wb_ready & !finished) begin
+        if (after_wb_state.READY & !finished) begin
             $fdisplay(file_handle, "Inst @ %X (%d ps)\n???  := %b(BIN) = %X (HEX LE)", wb_pc, t,
                       wb_inst_code, wb_inst_code);
             $fdisplay(file_handle, "Regs after:");
@@ -561,12 +604,12 @@ module rip_core #(
                 file_handle, "x28( t3 ):= %X, x29( t4 ):= %X, x30( t5 ):= %X, x31( t6 ):= %X, \n",
                 regfile.regfile[28], regfile.regfile[29], regfile.regfile[30], regfile.regfile[31]);
 
-            $fdisplay(file_handle, "  satp  := %X,  mstatus:= %X,  medeleg:= %X,  mideleg:= %X, ",
-                      32'h0, csr.mstatus, 32'h0, 32'h0);
-            $fdisplay(file_handle, "   mie  := %X,   mtvec := %X,   mepc  := %X,  mcause := %X, ",
-                      32'h0, csr.mtvec, csr.mepc, csr.mcause);
-            $fdisplay(file_handle, "  mtval := %X,  pmpcfg := %X,  pmpaddr:= %X,  mhartid:= %X, \n",
-                      32'h0, 32'h0, 32'h0, 32'h0);
+            // $fdisplay(file_handle, "  satp  := %X,  mstatus:= %X,  medeleg:= %X,  mideleg:= %X, ",
+            //           32'h0, csr.mstatus, 32'h0, 32'h0);
+            // $fdisplay(file_handle, "   mie  := %X,   mtvec := %X,   mepc  := %X,  mcause := %X, ",
+            //           32'h0, csr.mtvec, csr.mepc, csr.mcause);
+            // $fdisplay(file_handle, "  mtval := %X,  pmpcfg := %X,  pmpaddr:= %X,  mhartid:= %X, \n",
+            //           32'h0, 32'h0, 32'h0, 32'h0);
 
             // finish simulation when invalid instruction is executed
             if (wb_state.READY & !|wb_inst) begin

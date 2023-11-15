@@ -40,7 +40,7 @@ module rip_alu (
         end
         else if (inst.LUI | inst.AUIPC | inst.LB | inst.LH | inst.LW | inst.LBU | inst.LHU |
                  inst.SB | inst.SH | inst.SW | inst.ADDI | inst.SLTI | inst.SLTIU | inst.XORI |
-                 inst.ORI | inst.ANDI) begin
+                 inst.SLLI | inst.SRLI | inst.SRAI | inst.ORI | inst.ANDI) begin
             b = imm;
         end
         else if (inst.CSRRW | inst.CSRRS | inst.CSRRC | inst.CSRRWI | inst.CSRRSI |
@@ -90,12 +90,34 @@ module rip_alu (
         alu_and     = a & b;
         alu_clear   = ~a & b;
         alu_mul_ss  = $signed(a) * $signed(b);
-        alu_mul_su  = $signed(a) * b;
+        alu_mul_su  = $signed(a) * $signed({32'h0, b});
         alu_mul_uu  = a * b;
-        alu_div_s   = $signed(a) / $signed(b);
-        alu_div_u   = a / b;
-        alu_rem_s   = $signed(a) % $signed(b);
-        alu_rem_u   = a % b;
+
+        if (b == '0) begin
+            alu_div_u = '1;
+            alu_rem_u = a;
+        end
+        else begin
+            alu_div_u = a / b;
+            alu_rem_u = a % b;
+        end
+
+        if (b == '0) begin
+            alu_div_s = '1;
+            alu_rem_s = a;
+        end
+        else if (a == 32'h80000000 && b == 32'hFFFFFFFF) begin
+            alu_div_s = 32'h80000000;
+            alu_rem_s = 0;
+        end
+        else if ($signed(a) < $signed(0)) begin
+            alu_div_s = -(-$signed(a) / $signed(b));
+            alu_rem_s = -(-$signed(a) % $signed(b));
+        end
+        else begin
+            alu_div_s = $signed(a) / $signed(b);
+            alu_rem_s = $signed(a) % $signed(b);
+        end
     end
 
     always_ff @(posedge clk) begin
@@ -121,7 +143,10 @@ module rip_alu (
             else if (inst.BGEU) begin
                 rslt <= {31'b0, alu_geu};
             end
-            else if (inst.LUI | inst.AUIPC | inst.JAL | inst.JALR | inst.LB | inst.LH | inst.LW |
+            else if (inst.LUI) begin
+                rslt <= imm;
+            end
+            else if (inst.AUIPC | inst.JAL | inst.JALR | inst.LB | inst.LH | inst.LW |
                      inst.LBU | inst.LHU | inst.SB | inst.SH | inst.SW | inst.ADDI | inst.ADD |
                      inst.SUB) begin
                 rslt <= alu_add_sub;
@@ -154,7 +179,7 @@ module rip_alu (
                 rslt <= alu_mul_uu[31:0];
             end
             else if (inst.MULH) begin
-                rslt <= alu_mul_uu[63:32];
+                rslt <= alu_mul_ss[63:32];
             end
             else if (inst.MULHSU) begin
                 rslt <= alu_mul_su[63:32];

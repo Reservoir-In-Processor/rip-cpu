@@ -35,6 +35,7 @@ enable_testing()
 add_executable(test_all
   test_inst.cpp
   test_decode.cpp
+  test_alu.cpp
   test_riscv_tests.cpp
   test_dump.cpp
   main.cpp
@@ -64,6 +65,16 @@ verilate(test_all
   ../src/rip_common.sv
   ../src/rip_decode.sv
   PREFIX Vdecode
+)
+
+verilate(test_all
+  INCLUDE_DIRS "../src"
+  SOURCES
+  ../src/rip_const.svh
+  ../src/rip_type.svh
+  ../src/rip_common.sv
+  ../src/rip_alu.sv
+  PREFIX Valu
 )
 
 # export waveform
