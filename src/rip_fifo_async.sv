@@ -52,7 +52,7 @@ module rip_fifo_async #(
             r_addr_gray_w_1 <= '0;
             r_addr_gray_w_2 <= '0;
         end else begin
-            if (w_en) begin
+            if (w_en && !w_full) begin
                 afifo[w_addr[ADDR_WIDTH-1:0]] <= w_data;
                 w_addr <= w_addr + 1'b1;
             end
@@ -80,7 +80,7 @@ module rip_fifo_async #(
             w_addr_gray_r_1 <= '0;
             w_addr_gray_r_2 <= '0;
         end else begin
-            if (r_en) begin
+            if (r_en && !r_empty) begin
                 r_addr <= r_addr + 1'b1;
             end
             w_addr_gray_r_1 <= w_addr_gray;
