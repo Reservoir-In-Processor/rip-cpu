@@ -1,15 +1,20 @@
 #include <filesystem>
 #include <fstream>
+#include <mutex>
 #include <string>
 #include <vector>
 
-#include <verilated.h>
 #include "Vcore.h"
+#include <verilated.h>
 #include <verilated_vcd_c.h>
 
 #include <gtest/gtest.h>
 
-class RiscvTests : public ::testing::TestWithParam<std::string> {};
+class RiscvTests : public ::testing::TestWithParam<std::string> {
+
+protected:
+    std::mutex test_mutex;
+};
 
 std::vector<std::string> getBinFilesWithPrefix(const std::string &directory,
                                                const std::string &prefix) {
@@ -27,6 +32,7 @@ std::vector<std::string> getBinFilesWithPrefix(const std::string &directory,
 }
 
 TEST_P(RiscvTests, RiscvTests) {
+    std::lock_guard<std::mutex> lock(test_mutex);
     constexpr int TIME_MAX = 100000;
 
     // Instantiate DUT
