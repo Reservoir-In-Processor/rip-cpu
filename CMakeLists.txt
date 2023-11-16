@@ -7,6 +7,6 @@ include(ProcessorCount)
 ProcessorCount(N)
 add_custom_target(test-all
   COMMAND ctest --test-dir ./test --output-on-failure -j ${N}
-  DEPENDS ${ALL_TESTS}
+  DEPENDS test_all
 )
 # 
