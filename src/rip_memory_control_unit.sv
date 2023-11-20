@@ -1,9 +1,9 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
-// Module: rip_memory
+// Module: rip_memory_control_unit
 // Description: byte addressing memory system top module.
-module rip_memory #(
+module rip_memory_control_unit #(
     parameter DATA_WIDTH = 32, // data port width
     parameter ADDR_WIDTH = 32
 ) (
