@@ -18,7 +18,7 @@ module rip_axi_master #(
 );
 
     // to be implemented
-    assign pred = '0; // always taken
+    assign pred = '1; // always taken
 
 endmodule
 
