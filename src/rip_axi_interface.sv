@@ -23,7 +23,7 @@ interface rip_axi_interface #(
     logic WREADY;
     // Write response channel signals
     logic [ID_WIDTH-1:0] BID;
-    logic BRESP;
+    logic [1:0] BRESP;
     logic BVALID;
     logic BREADY;
     // Read address channel signals
@@ -40,7 +40,7 @@ interface rip_axi_interface #(
     // Read data channel signals
     logic [ID_WIDTH-1:0] RID;
     logic [DATA_WIDTH-1:0] RDATA;
-    logic RRESP;
+    logic [1:0] RRESP;
     logic RLAST;
     logic RVALID;
     logic RREADY;
