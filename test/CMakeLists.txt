@@ -87,7 +87,8 @@ verilate(test_all
     ../src/rip_alu.sv
     ../src/rip_regfile.sv
     ../src/rip_csr.sv
-    ../src/rip_memory.sv
+    ../src/rip_memory_control_unit.sv
+    ../src/rip_memory_access.sv
     ../src/rip_decode.sv
     ../src/rip_core.sv
   TOP_MODULE rip_core

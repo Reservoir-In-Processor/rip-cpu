@@ -102,7 +102,7 @@ module rip_core (
             if (pc_state.INVALID | ex_flush_by_jmp) begin
                 if_state <= 3'b100;
             end
-            else if (ex_stall_by_load) begin
+            else if (ex_stall_by_load | busy_2) begin
                 if_state <= 3'b010;
             end
             else begin
@@ -423,8 +423,28 @@ module rip_core (
         end
     end
 
-    rip_memory memory (
+    wire [3:0] we_1;
+    wire re_1;
+    wire re_2;
+    wire [31:0] addr_1;
+    wire [31:0] addr_2;
+    wire [31:0] din_1;
+    wire [31:0] dout_1;
+    wire [31:0] dout_2;
+    wire busy_1;
+    wire busy_2;
+
+    rip_memory_access memory_access (
         .clk(clk),
+
+        .we_1(we_1),
+        .re_1(re_1),
+        .re_2(re_2),
+        .addr_1(addr_1),
+        .addr_2(addr_2),
+        .din_1(din_1),
+        .dout_1(dout_1),
+        .dout_2(dout_2),
 
         .if_ready(if_state.READY),
         .pc(pc),
@@ -437,6 +457,21 @@ module rip_core (
         .ma_addr (ma_alu_rslt),
         .ex_din  (ex_rs2),
         .ma_dout (ma_ram_dout)
+    );
+
+    rip_memory_control_unit memory_control_unit (
+        .clk(clk),
+
+        .we_1(we_1),
+        .re_1(re_1),
+        .re_2(re_2),
+        .addr_1(addr_1),
+        .addr_2(addr_2),
+        .din_1(din_1),
+        .dout_1(dout_1),
+        .dout_2(dout_2),
+        .busy_1(busy_1),
+        .busy_2(busy_2)
     );
 
     /* -------------------------------- *
@@ -492,6 +527,9 @@ module rip_core (
         else begin
             if (ma_state.INVALID) begin
                 wb_state <= 3'b100;
+            end
+            else if (busy_1) begin
+                wb_state <= 3'b010;
             end
             else begin
                 wb_state <= 3'b001;
