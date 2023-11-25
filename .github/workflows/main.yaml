@@ -19,5 +19,4 @@ jobs:
           ninja -C build
       - name: Run tests
         run: |
-          cd test/build
-          ./test_all
+          ninja -C build test-all
