@@ -9,13 +9,15 @@ interface rip_axi_interface #(
     logic [7:0] AWLEN;
     logic [2:0] AWSIZE;
     logic [1:0] AWBURST;
-    logic [1:0] AWLOCK;
+    logic AWLOCK;
     logic [3:0] AWCACHE;
     logic [2:0] AWPROT;
+    logic [3:0] AWQOS;
+    logic [3:0] AWREGION;
     logic AWVALID;
     logic AWREADY;
     // Write data channel signals
-    logic [ID_WIDTH-1:0] WID;
+    logic [ID_WIDTH-1:0] WID; // for debug
     logic [DATA_WIDTH-1:0] WDATA;
     logic [DATA_WIDTH/8-1:0] WSTRB;
     logic WLAST;
@@ -32,9 +34,11 @@ interface rip_axi_interface #(
     logic [7:0] ARLEN;
     logic [2:0] ARSIZE;
     logic [1:0] ARBURST;
-    logic [1:0] ARLOCK;
+    logic ARLOCK;
     logic [3:0] ARCACHE;
     logic [2:0] ARPROT;
+    logic [3:0] ARQOS;
+    logic [3:0] ARREGION;
     logic ARVALID;
     logic ARREADY;
     // Read data channel signals
@@ -47,7 +51,7 @@ interface rip_axi_interface #(
 
     modport master (
         // Write address channel signals
-        output AWID, AWADDR, AWLEN, AWSIZE, AWBURST, AWLOCK, AWCACHE, AWPROT, AWVALID,
+        output AWID, AWADDR, AWLEN, AWSIZE, AWBURST, AWLOCK, AWCACHE, AWPROT, AWQOS, AWREGION, AWVALID,
         input AWREADY,
         // Write data channel signals
         output WID, WDATA, WSTRB, WLAST, WVALID,
@@ -56,7 +60,7 @@ interface rip_axi_interface #(
         input BID, BRESP, BVALID,
         output BREADY,
         // Read address channel signals
-        output ARID, ARADDR, ARLEN, ARSIZE, ARBURST, ARLOCK, ARCACHE, ARPROT, ARVALID,
+        output ARID, ARADDR, ARLEN, ARSIZE, ARBURST, ARLOCK, ARCACHE, ARPROT, ARQOS, ARREGION, ARVALID,
         input ARREADY,
         // Read data channel signals
         input RID, RDATA, RRESP, RLAST, RVALID,
@@ -65,7 +69,7 @@ interface rip_axi_interface #(
 
     modport slave (
         // Write address channel signals
-        input AWID, AWADDR, AWLEN, AWSIZE, AWBURST, AWLOCK, AWCACHE, AWPROT, AWVALID,
+        input AWID, AWADDR, AWLEN, AWSIZE, AWBURST, AWLOCK, AWCACHE, AWPROT, AWQOS, AWREGION, AWVALID,
         output AWREADY,
         // Write data channel signals
         input WID, WDATA, WSTRB, WLAST, WVALID,
@@ -74,7 +78,7 @@ interface rip_axi_interface #(
         output BID, BRESP, BVALID,
         input BREADY,
         // Read address channel signals
-        input ARID, ARADDR, ARLEN, ARSIZE, ARBURST, ARLOCK, ARCACHE, ARPROT, ARVALID,
+        input ARID, ARADDR, ARLEN, ARSIZE, ARBURST, ARLOCK, ARCACHE, ARPROT, ARQOS, ARREGION, ARVALID,
         output ARREADY,
         // Read data channel signals
         output RID, RDATA, RRESP, RLAST, RVALID,
