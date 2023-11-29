@@ -6,6 +6,7 @@
 module rip_alu (
     input rst_n,
     input clk,
+    input ex_ready,
 
     input rip_common::inst_t inst,
 
@@ -124,7 +125,7 @@ module rip_alu (
         if (!rst_n) begin
             rslt <= 0;
         end
-        else begin
+        else if (ex_ready) begin
             if (inst.BEQ) begin
                 rslt <= {31'b0, alu_eq};
             end

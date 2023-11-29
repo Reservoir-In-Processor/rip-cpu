@@ -24,11 +24,21 @@ module rip_core (
      * Stage 0: PC (program counter)    *
      * -------------------------------- */
 
-    state_t pc_state;
+    state_t pc_state, pc_state_reg;
     logic [31:0] pc;
     logic [31:0] pc_next;
 
     always_comb begin
+        if (pc_state_reg.INVALID) begin
+            pc_state = 3'b100;
+        end
+        else if (busy_1 | busy_2) begin
+            pc_state = 3'b010;
+        end
+        else begin
+            pc_state = pc_state_reg;
+        end
+
         if (ma_state.READY & ex_inst.UPDATE_PC) begin
             if (ex_inst.JALR) begin
                 pc_next = (ex_rs1 + ex_imm) & 32'hFFFFFFFE;
@@ -55,15 +65,15 @@ module rip_core (
 
     always_ff @(posedge clk) begin
         if (!rst_n) begin
-            pc_state <= 3'b100;
+            pc_state_reg <= 3'b100;
             pc       <= START_ADDR - 32'h4;
         end
         else begin
             if (ex_stall_by_load) begin
-                pc_state <= 3'b010;
+                pc_state_reg <= 3'b010;
             end
             else begin
-                pc_state <= 3'b001;
+                pc_state_reg <= 3'b001;
             end
 
             if (pc_state.READY) begin
@@ -79,7 +89,7 @@ module rip_core (
      * Stage 1: IF (instruction fetch)  *
      * -------------------------------- */
 
-    state_t if_state;
+    state_t if_state, if_state_reg;
     logic [31:0] if_pc;
     wire [31:0] if_inst_code;
 
@@ -93,20 +103,32 @@ module rip_core (
     // assign if_inst_code = (de_state.READY & !ex_state.STALL) ? if_dout : 32'h0;
     assign if_inst_code = if_dout;
 
+    always_comb begin
+        if (if_state_reg.INVALID) begin
+            if_state = 3'b100;
+        end
+        else if (busy_1 | busy_2) begin
+            if_state = 3'b010;
+        end
+        else begin
+            if_state = if_state_reg;
+        end
+    end
+
     always_ff @(posedge clk) begin
         if (!rst_n) begin
-            if_state <= 3'b100;
+            if_state_reg <= 3'b100;
             if_pc    <= 32'h0;
         end
         else begin
-            if (pc_state.INVALID | ex_flush_by_jmp) begin
-                if_state <= 3'b100;
+            if ((!pc_state.READY & !if_state.STALL) | ex_flush_by_jmp) begin
+                if_state_reg <= 3'b100;
             end
-            else if (ex_stall_by_load | busy_2) begin
-                if_state <= 3'b010;
+            else if (ex_stall_by_load) begin
+                if_state_reg <= 3'b010;
             end
             else begin
-                if_state <= 3'b001;
+                if_state_reg <= 3'b001;
             end
 
             if (if_state.READY) begin
@@ -122,7 +144,7 @@ module rip_core (
      * Stage 2: DE (decode)             *
      * -------------------------------- */
 
-    state_t de_state;
+    state_t de_state, de_state_reg;
     logic [31:0] de_pc;
     inst_t de_inst;
 
@@ -207,6 +229,16 @@ module rip_core (
 
     // forwarding csr register
     always_comb begin
+        if (de_state_reg.INVALID) begin
+            de_state = 3'b100;
+        end
+        else if (busy_1) begin
+            de_state = 3'b010;
+        end
+        else begin
+            de_state = de_state_reg;
+        end
+
         if (ma_state.READY && ex_inst.UPDATE_CSR && if_csr_num == ex_csr_num) begin
             de_csr = ex_alu_rslt;
         end
@@ -220,21 +252,21 @@ module rip_core (
 
     always_ff @(posedge clk) begin
         if (!rst_n) begin
-            de_state   <= 3'b100;
+            de_state_reg   <= 3'b100;
             de_pc      <= 32'h0;
 
             de_rd_num  <= 5'h0;
             de_csr_num <= 12'h0;
         end
         else begin
-            if (if_state.INVALID | (!de_state.STALL & if_state.STALL) | ex_flush_by_jmp) begin
-                de_state <= 3'b100;
+            if ((!if_state.READY & !de_state.STALL) | ex_flush_by_jmp) begin
+                de_state_reg <= 3'b100;
             end
             else if (ex_stall_by_load) begin
-                de_state <= 3'b010;
+                de_state_reg <= 3'b010;
             end
             else begin
-                de_state <= 3'b001;
+                de_state_reg <= 3'b001;
             end
 
             if (de_state.READY) begin
@@ -250,7 +282,7 @@ module rip_core (
      * Stage 3: EX (execution)          *
      * -------------------------------- */
 
-    state_t ex_state;
+    state_t ex_state, ex_state_reg;
     logic [31:0] ex_pc;
     inst_t ex_inst;
     wire ex_stall_by_load;
@@ -271,6 +303,7 @@ module rip_core (
     rip_alu alu (
         .rst_n(rst_n),
         .clk  (clk),
+        .ex_ready(ex_state.READY),
 
         .inst(de_inst),
 
@@ -289,9 +322,21 @@ module rip_core (
         (de_rd_num == if_rs1_num | de_rd_num == if_rs2_num);
     assign ex_flush_by_jmp = ex_state.READY & de_inst.UPDATE_PC;
 
+    always_comb begin
+        if (ex_state_reg.INVALID) begin
+            ex_state = 3'b100;
+        end
+        else if (busy_1) begin
+            ex_state = 3'b010;
+        end
+        else begin
+            ex_state = ex_state_reg;
+        end
+    end
+
     always_ff @(posedge clk) begin
         if (!rst_n) begin
-            ex_state    <= 3'b100;
+            ex_state_reg    <= 3'b100;
             ex_pc       <= 32'h0;
 
             ex_rs1      <= 32'h0;
@@ -305,14 +350,14 @@ module rip_core (
             ex_csr_num  <= 12'h0;
         end
         else begin
-            if (de_state.INVALID | ex_flush_by_jmp) begin
-                ex_state <= 3'b100;
+            if ((!de_state.READY && !ex_state.STALL) | ex_flush_by_jmp) begin
+                ex_state_reg <= 3'b100;
             end
             else if (ex_stall_by_load) begin
-                ex_state <= 3'b010;
+                ex_state_reg <= 3'b010;
             end
             else begin
-                ex_state <= 3'b001;
+                ex_state_reg <= 3'b001;
             end
 
             if (ex_state.READY) begin
@@ -377,8 +422,9 @@ module rip_core (
      * Stage 4: MA (memory access)      *
      * -------------------------------- */
 
-    state_t ma_state;
+    state_t ma_state, ma_state_reg;
     inst_t ma_inst;
+    wire ma_stall_by_load;
 
     logic [31:0] ma_alu_rslt;
     logic [4:0] ma_rd_num;
@@ -387,9 +433,21 @@ module rip_core (
 
     wire [31:0] ma_ram_dout;
 
+    always_comb begin
+        if (ma_state_reg.INVALID) begin
+            ma_state = 3'b100;
+        end
+        else if (busy_1) begin
+            ma_state = 3'b010;
+        end
+        else begin
+            ma_state = ma_state_reg;
+        end
+    end
+
     always_ff @(posedge clk) begin
         if (!rst_n) begin
-            ma_state    <= 3'b100;
+            ma_state_reg    <= 3'b100;
             ma_alu_rslt <= 32'h0;
 
             ma_rd_num   <= 5'h0;
@@ -397,11 +455,11 @@ module rip_core (
             ma_csr      <= 32'h0;
         end
         else begin
-            if (ex_state.INVALID | (!ma_state.STALL & ex_state.STALL)) begin
-                ma_state <= 3'b100;
+            if (!ex_state.READY & !ma_state.STALL) begin
+                ma_state_reg <= 3'b100;
             end
             else begin
-                ma_state <= 3'b001;
+                ma_state_reg <= 3'b001;
             end
 
             if (ma_state.READY) begin
@@ -478,7 +536,7 @@ module rip_core (
      * Stage 5: WB (write back)         *
      * -------------------------------- */
 
-    state_t wb_state;
+    state_t wb_state, wb_state_reg;
     inst_t wb_inst;
 
     wire ma_reg_wen;
@@ -491,6 +549,16 @@ module rip_core (
     assign ma_reg_wen = wb_state.READY && ma_inst.UPDATE_REG;
     assign ma_csr_wen = wb_state.READY && ma_inst.UPDATE_CSR;
     always_comb begin
+        if (wb_state_reg.INVALID) begin
+            wb_state = 3'b100;
+        end
+        else if (busy_1) begin
+            wb_state = 3'b010;
+        end
+        else begin
+            wb_state = wb_state_reg;
+        end
+
         if (ma_inst.LB | ma_inst.LH | ma_inst.LW | ma_inst.LBU | ma_inst.LHU) begin
             ma_wdata = ma_ram_dout;
         end
@@ -520,19 +588,16 @@ module rip_core (
 
     always_ff @(posedge clk) begin
         if (!rst_n) begin
-            wb_state <= 3'b100;
+            wb_state_reg <= 3'b100;
             wb_rd_num <= 5'h0;
             wb_wdata  <= 32'h0;
         end
         else begin
-            if (ma_state.INVALID) begin
-                wb_state <= 3'b100;
-            end
-            else if (busy_1) begin
-                wb_state <= 3'b010;
+            if (!ma_state.READY & !wb_state.STALL) begin
+                wb_state_reg <= 3'b100;
             end
             else begin
-                wb_state <= 3'b001;
+                wb_state_reg <= 3'b001;
             end
         end
 
@@ -552,18 +617,27 @@ module rip_core (
      * After WB (for forwarding)        *
      * -------------------------------- */
 
-    state_t after_wb_state;
+    state_t after_wb_state, after_wb_state_reg;
+
+    always_comb begin
+        if (after_wb_state_reg.INVALID) begin
+            after_wb_state = 3'b100;
+        end
+        else begin
+            after_wb_state = after_wb_state_reg;
+        end
+    end
 
     always_ff @(posedge clk) begin
         if (!rst_n) begin
-            after_wb_state <= 3'b100;
+            after_wb_state_reg <= 3'b100;
         end
         else begin
-            if (wb_state.INVALID) begin
-                after_wb_state <= 3'b100;
+            if (!wb_state.READY & !after_wb_state.STALL) begin
+                after_wb_state_reg <= 3'b100;
             end
             else begin
-                after_wb_state <= 3'b001;
+                after_wb_state_reg <= 3'b001;
             end
         end
     end
@@ -650,7 +724,7 @@ module rip_core (
             //           32'h0, 32'h0, 32'h0, 32'h0);
 
             // finish simulation when invalid instruction is executed
-            if (wb_state.READY & !|wb_inst) begin
+            if (wb_inst.EBREAK) begin
                 $fclose(file_handle);
                 finished <= 1'b1;
             end
