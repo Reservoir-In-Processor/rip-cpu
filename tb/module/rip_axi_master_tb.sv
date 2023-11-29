@@ -7,6 +7,7 @@ module rip_axi_master_tb #(
     parameter BURST_LEN = 2
 ) (
 );
+    import rip_const::*;
     import rip_axi_interface_const::*;
     import axi_vip_pkg::*;
     import axi_vip_0_pkg::*; // component name retrived from IP configuration window
@@ -20,6 +21,7 @@ module rip_axi_master_tb #(
     logic wready;
     logic [ADDR_WIDTH-1:0] waddr;
     logic [DATA_WIDTH*BURST_LEN-1:0] wdata;
+    logic [DATA_WIDTH*BURST_LEN/B_WIDTH-1:0] wstrb;
     logic wvalid;
     logic wdone;
     logic rready;
@@ -31,6 +33,7 @@ module rip_axi_master_tb #(
         wready <= '0;
         waddr <= '0;
         wdata <= '0;
+        wstrb <= '0;
         wvalid <= '0;
         rready <= '0;
         raddr <= '0;
@@ -54,6 +57,7 @@ module rip_axi_master_tb #(
         .wready(wready),
         .waddr(waddr),
         .wdata(wdata),
+        .wstrb(wstrb),
         .wvalid(wvalid),
         .wdone(wdone),
         .rready(rready),
@@ -112,7 +116,8 @@ module rip_axi_master_tb #(
 
     task automatic write(
         input logic [ADDR_WIDTH-1:0] addr,
-        input logic [DATA_WIDTH*BURST_LEN-1:0] data
+        input logic [DATA_WIDTH*BURST_LEN-1:0] data,
+        input logic [DATA_WIDTH*BURST_LEN/B_WIDTH-1:0] strb
     );
         while (~wready) begin
             @(posedge SYS_CLK);
@@ -120,13 +125,14 @@ module rip_axi_master_tb #(
         $display("writing @ 0x%h... %6d[ns]", addr, $time);
         waddr <= addr;
         wdata <= data;
+        wstrb <= strb;
         wvalid <= '1;
         @(posedge SYS_CLK);
         wvalid <= '0;
         while (~wdone) begin
             @(posedge SYS_CLK);
         end
-        $display("        << wrote '0x%h' @ 0x%h %6d[ns]", data, addr, $time);
+        $display("        << wrote '0x%h' [%b] @ 0x%h %6d[ns]", data, strb, addr, $time);
     endtask
 
     task automatic read(
@@ -156,23 +162,26 @@ module rip_axi_master_tb #(
         agent.start_slave();
         $display("[RIP] start simulation");
         repeat(100) @(posedge SYS_CLK);
-        write('h10, 'h1234);
+        write('h10, 'h1234, '1);
         read('h10);
-        write('h10, 'h1234567890abcdef);
-        write('h18, 'hcdef90ab56781234);
+        write('h10, 'h1234567890abcdef, '1);
+        write('h18, 'hcdef90ab56781234, '1);
         read('h10);
         read('h14);
         read('h18);
         read('h1c);
-        write('h20, 'hcafecafecafecafe);
-        write('h28, 'hbeafbeafbeafbeaf);
+        write('h20, 'hcafecafecafecafe, '1);
+        write('h28, 'hbeafbeafbeafbeaf, '1);
         read('h28);
         read('h20);
         read('h24);
-        write('h30, 'hc0ffeeadd1c0ffee);
+        write('h20, 'hbeefbeefbeefbeef, 'b01100100);
+        read('h20);
+        read('h24);
+        write('h30, 'hc0ffeeadd1c0ffee, '1);
         fork
             read('h30);
-            write('h38, 'hfab1e55);
+            write('h38, 'hfab1e55, '1);
         join
         read('h38);
         repeat(100) @(posedge SYS_CLK);

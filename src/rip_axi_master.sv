@@ -8,11 +8,12 @@
 // - assumes the burst length to be fixed
 // - omits some AXI4-only signals
 // - does not check transaction responses
-// - does not support strobes
 // - does not support outstandings
 //
 
-module rip_axi_master #(
+module rip_axi_master
+    import rip_const::*;
+#(
     parameter ID_WIDTH = 4,
     parameter ADDR_WIDTH = 32,
     parameter DATA_WIDTH = 32, // Burst size
@@ -24,6 +25,7 @@ module rip_axi_master #(
     output logic wready,
     input wire [ADDR_WIDTH-1:0] waddr,
     input wire [DATA_WIDTH*BURST_LEN-1:0] wdata,
+    input wire [DATA_WIDTH*BURST_LEN/B_WIDTH-1:0] wstrb,
     input wire wvalid,
     output logic wdone,
     // Read access
@@ -35,7 +37,6 @@ module rip_axi_master #(
     // AXI interface
     rip_axi_interface.master M_AXI
 );
-    import rip_const::*;
     import rip_axi_interface_const::*;
 
     // not crossing a 4KB address boundary is ensured by the parent module
@@ -84,7 +85,7 @@ module rip_axi_master #(
                 // Write data channel signals
                 M_AXI.WID <= M_AXI.WID + 1'b1;
                 M_AXI.WDATA <= wdata[0 +: DATA_WIDTH];
-                M_AXI.WSTRB <= '1;
+                M_AXI.WSTRB <= wstrb[0 +: DATA_WIDTH/B_WIDTH];
                 M_AXI.WLAST <= (AXLEN == 0) ? 1'b1 : '0;
                 M_AXI.WVALID <= 1'b1;
                 wready <= '0;
@@ -103,6 +104,7 @@ module rip_axi_master #(
                         M_AXI.BREADY <= 1'b1;
                     end else begin
                         M_AXI.WDATA <= wdata[DATA_WIDTH*wcnt +: DATA_WIDTH];
+                        M_AXI.WSTRB <= wstrb[DATA_WIDTH*wcnt/B_WIDTH +: DATA_WIDTH/B_WIDTH];
                         wcnt <= wcnt + 1'b1;
                         if (wcnt == AXLEN) begin
                             M_AXI.WLAST <= 1'b1;
