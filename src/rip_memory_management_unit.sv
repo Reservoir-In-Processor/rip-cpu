@@ -73,6 +73,7 @@ module rip_memory_management_unit
     // TO BE IMPLEMENTED
 
     // temporary implementation (without cache)
+    // re_1 has priority over re_2
 
     logic busy_1_w;
     logic busy_1_r;
@@ -159,7 +160,8 @@ module rip_memory_management_unit
                     wait_1_w <= '1;
                 end
             end else if (re_1) begin
-                if (busy_2) begin
+                if (busy_2 && ~wait_2_1) begin
+                    // only when re_2 is not waiting re_1 (to avoid deadlock)
                     raddr_1 <= addr_1;
                     busy_1_r <= '1;
                     wait_1_r_2 <= '1;

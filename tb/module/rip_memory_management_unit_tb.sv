@@ -258,6 +258,7 @@ module rip_memory_management_unit_tb #(
         agent.start_slave();
         $display("[RIP] start simulation");
         repeat(100) @(posedge SYS_CLK);
+
         $display("test channel 1");
         write_1('h4 * cnt, '1, data[cnt]);
         read_1('h4 * cnt);
@@ -273,11 +274,13 @@ module rip_memory_management_unit_tb #(
         write_1('h4 * cnt, '1, data[cnt]);
         read_1('h4 * cnt);
         repeat(20) @(posedge SYS_CLK);
+
         $display("test channel 2");
         cnt++;
         write_1('h4 * cnt, '1, data[cnt]);
         read_2('h4 * cnt);
         repeat(20) @(posedge SYS_CLK);
+
         cnt++;
         write_1_dispatch('h4 * cnt, '1, data[cnt]);
         read_2_dispatch('h4 * (cnt-1));
@@ -295,10 +298,48 @@ module rip_memory_management_unit_tb #(
             read_2_wait();
         join
         repeat(20) @(posedge SYS_CLK);
+
         cnt++;
         write_1('h4 * cnt, '1, data[cnt]);
-        read_1('h4 * (cnt-1));
-        read_2('h4 * cnt);
+        read_1('h4 * (cnt-2)); // (*1)
+        read_2('h4 * (cnt-1)); // (*2)
+        read_1('h4 * cnt); // test deadlock case
+            // may wait *1, but must not wait *2 (which waits another re_1, i.e. *1)
+        repeat(20) @(posedge SYS_CLK);
+
+        cnt++;
+        write_1('h4 * cnt, '1, data[cnt]);
+        repeat(10) @(posedge SYS_CLK);
+
+        read_1_dispatch('h4 * (cnt-1)); // copmpletes first
+        read_2_dispatch('h4 * cnt); // (*3)
+        @(posedge SYS_CLK);
+        fork
+            read_1_wait();
+            read_2_wait();
+        join
+        cnt++;
+        write_1('h4 * cnt, '1, data[cnt]);
+        read_1('h4 * cnt); // test deadlock case
+            // may wait *3 (ongoing AXI transaction, not waiting re_1)
+        repeat(20) @(posedge SYS_CLK);
+
+        cnt++;
+        write_1('h4 * cnt, '1, data[cnt]);
+        repeat(10) @(posedge SYS_CLK);
+
+        read_2_dispatch('h4 * (cnt-1)); // (*4)
+        @(posedge SYS_CLK);
+        read_1_dispatch('h4 * cnt); // test deadlock case
+            // may wait *4 (ongoing AXI transaction, not waiting re_1)
+        re_2 <= '0;
+        @(posedge SYS_CLK);
+        fork
+            read_2_wait();
+            read_1_wait();
+        join
+        repeat(20) @(posedge SYS_CLK);
+
         $display("test strobes");
         cnt++;
         write_1('h4 * cnt, '1, data[cnt]);
