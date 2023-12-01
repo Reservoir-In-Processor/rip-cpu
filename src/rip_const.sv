@@ -8,7 +8,7 @@ package rip_const;
     localparam H_WIDTH = 16; // half word width
     localparam W_WIDTH = 32; // word width
     localparam D_WIDTH = 64; // double word width
-    
+
 endpackage
 
 `endif
