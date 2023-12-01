@@ -43,6 +43,11 @@ module rip_axi_master
     localparam AXLEN = BURST_LEN - 1;
     localparam AXSIZE = $clog2(DATA_WIDTH / B_WIDTH);
 
+    // buffers
+    logic [DATA_WIDTH*BURST_LEN-1:0] wdata_buf;
+    logic [DATA_WIDTH*BURST_LEN/B_WIDTH-1:0] wstrb_buf;
+
+    // burst counters
     localparam BURST_CNT_WIDTH = (BURST_LEN > 1) ? $clog2(BURST_LEN) : 1;
     logic [BURST_CNT_WIDTH-1:0] wcnt;
     logic [BURST_CNT_WIDTH-1:0] rcnt;
@@ -70,6 +75,8 @@ module rip_axi_master
             M_AXI.WVALID <= '0;
             wready <= '0;
             wdone <= '0;
+            wdata_buf <= '0;
+            wstrb_buf <= '0;
             wcnt <= '0;
             // Write response channel signals
             M_AXI.BREADY <= '0;
@@ -90,6 +97,8 @@ module rip_axi_master
                 M_AXI.WVALID <= 1'b1;
                 wready <= '0;
                 wdone <= '0;
+                wdata_buf <= wdata;
+                wstrb_buf <= wstrb;
                 wcnt <= 1'b1;
                 // Write response channel signals
                 M_AXI.BREADY <= '0;
@@ -103,8 +112,8 @@ module rip_axi_master
                         M_AXI.WVALID <= '0;
                         M_AXI.BREADY <= 1'b1;
                     end else begin
-                        M_AXI.WDATA <= wdata[DATA_WIDTH*wcnt +: DATA_WIDTH];
-                        M_AXI.WSTRB <= wstrb[DATA_WIDTH*wcnt/B_WIDTH +: DATA_WIDTH/B_WIDTH];
+                        M_AXI.WDATA <= wdata_buf[DATA_WIDTH*wcnt +: DATA_WIDTH];
+                        M_AXI.WSTRB <= wstrb_buf[DATA_WIDTH*wcnt/B_WIDTH +: DATA_WIDTH/B_WIDTH];
                         wcnt <= wcnt + 1'b1;
                         if (wcnt == AXLEN) begin
                             M_AXI.WLAST <= 1'b1;
