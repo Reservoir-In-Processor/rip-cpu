@@ -3,22 +3,93 @@
 
 //
 // branch predictor implementation
+// - bimodal predictor
 //
 
-module rip_axi_master #(
+module rip_branch_predictor #(
     // Pattern History Table
     parameter PHT_LSB = 0,
     parameter PHT_MSB = 31,
     // Global History
     parameter GLOBAL_HISTORY_DEPTH = 10
 ) (
+    input wire clk,
+    input wire rstn,
     input wire [31:0] pc,
     output logic pred,
+    input wire update, // deasserted when stall
     input wire actual
 );
 
-    // to be implemented
-    assign pred = '1; // always taken
+    localparam PHT_DEPTH = PHT_MSB - PHT_LSB + 1;
+    localparam PH_WIDTH = 2; // two bit saturating counter
+
+    logic [PHT_DEPTH-1:0] previous_index;
+    logic [PHT_DEPTH-1:0] current_index;
+    assign current_index = pc[PHT_MSB:PHT_LSB];
+
+    typedef enum logic [PH_WIDTH-1:0] {
+        STRONGLY_UNTAKEN = 'b00,
+        WEAKLY_UNTAKEN   = 'b01,
+        WEAKLY_TAKEN     = 'b10,
+        STRONGLY_TAKEN   = 'b11,
+        NONE = 'x
+    } two_bit_saturating_counter_t;
+
+    two_bit_saturating_counter_t pred_counter_value;
+    assign pred = pred_counter_value >= WEAKLY_TAKEN;
+
+    two_bit_saturating_counter_t previous_counter_value;
+    two_bit_saturating_counter_t update_counter_value;
+
+    always_ff @(posedge clk) begin
+        if (~rstn) begin
+            previous_index <= '0;
+            previous_counter_value <= NONE;
+        end else begin
+            if (update) begin
+                previous_index <= current_index;
+                previous_counter_value <= pred_counter_value;
+            end else begin
+                previous_index <= previous_index;
+                previous_counter_value <= previous_counter_value;
+            end
+        end
+    end
+
+    always_comb begin
+        if (update) begin
+            case (previous_counter_value)
+                STRONGLY_UNTAKEN:
+                    update_counter_value = actual ? WEAKLY_UNTAKEN : STRONGLY_UNTAKEN;
+                WEAKLY_UNTAKEN:
+                    update_counter_value = actual ? WEAKLY_TAKEN   : STRONGLY_UNTAKEN;
+                WEAKLY_TAKEN:
+                    update_counter_value = actual ? STRONGLY_TAKEN : WEAKLY_UNTAKEN;
+                STRONGLY_TAKEN:
+                    update_counter_value = actual ? STRONGLY_TAKEN : WEAKLY_TAKEN;
+                default:
+                    update_counter_value = NONE;
+            endcase
+        end else begin
+            update_counter_value = update_counter_value;
+        end
+    end
+
+    rip_2r1w_bram #(
+        .DATA_WIDTH(PH_WIDTH),
+        .ADDR_WIDTH(PHT_DEPTH)
+    ) PHT (
+        .clk(clk),
+        .enable_1(rstn),
+        .enable_2(rstn),
+        .addr_1(previous_index),
+        .addr_2(current_index),
+        .we_1(update),
+        .din_1(update_counter_value),
+        // .dout_1(),
+        .dout_2(pred_counter_value)
+    );
 
 endmodule
 
