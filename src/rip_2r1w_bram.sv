@@ -14,11 +14,11 @@ module rip_2r1w_bram
   parameter ADDR_WIDTH = 10  // bram data depth
 ) (
   input wire clk,
-  input wire [DATA_WIDTH/B_WIDTH-1:0] we_1,
   input wire enable_1,
   input wire enable_2,
   input wire [ADDR_WIDTH-1:0] addr_1,
   input wire [ADDR_WIDTH-1:0] addr_2,
+  input wire [DATA_WIDTH/B_WIDTH-1:0] we_1,
   input wire [DATA_WIDTH-1:0] din_1,
   output reg [DATA_WIDTH-1:0] dout_1,
   output reg [DATA_WIDTH-1:0] dout_2
