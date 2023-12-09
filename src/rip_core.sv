@@ -27,6 +27,8 @@ module rip_core (
     state_t pc_state, pc_state_reg;
     logic [31:0] pc;
     logic [31:0] pc_next;
+    logic [31:0] pc_next_buf;
+    logic pc_next_buf_valid;
 
     always_comb begin
         if (pc_state_reg.INVALID) begin
@@ -77,10 +79,18 @@ module rip_core (
             end
 
             if (pc_state.READY) begin
-                pc <= pc_next;
+                if (pc_next_buf_valid) begin
+                    pc <= pc_next_buf;
+                    pc_next_buf_valid <= 1'b0;
+                end
+                else begin
+                    pc <= pc_next;
+                end
             end
-            else if (!if_state.STALL) begin
-                pc <= START_ADDR - 32'h4;
+
+            if (pc_state.STALL & !if_state.STALL & !pc_next_buf_valid) begin
+                pc_next_buf <= pc_next;
+                pc_next_buf_valid <= 1'b1;
             end
         end
     end
@@ -189,7 +199,7 @@ module rip_core (
 
     // forwarding register
     always_comb begin
-        if (ma_state.READY && !ex_inst.UPDATE_CSR && ex_rd_num != 5'h0 &&
+        if (ma_state.READY && !ex_inst.ACCESS_MEM && !ex_inst.UPDATE_CSR && ex_rd_num != 5'h0 &&
             de_rs1_num == ex_rd_num) begin
             de_rs1 = ex_alu_rslt;
         end
@@ -205,7 +215,7 @@ module rip_core (
             de_rs1 = de_rs1_reg;
         end
 
-        if (ma_state.READY && !ex_inst.UPDATE_CSR && ex_rd_num != 5'h0 &&
+        if (ma_state.READY && !ex_inst.ACCESS_MEM && !ex_inst.UPDATE_CSR && ex_rd_num != 5'h0 &&
             de_rs2_num == ex_rd_num) begin
             de_rs2 = ex_alu_rslt;
         end
@@ -232,7 +242,7 @@ module rip_core (
         if (de_state_reg.INVALID) begin
             de_state = 3'b100;
         end
-        else if (busy_1) begin
+        else if (busy_1 | busy_2) begin
             de_state = 3'b010;
         end
         else begin
@@ -519,6 +529,7 @@ module rip_core (
 
     rip_memory_control_unit memory_control_unit (
         .clk(clk),
+        .rstn(rst_n),
 
         .we_1(we_1),
         .re_1(re_1),
