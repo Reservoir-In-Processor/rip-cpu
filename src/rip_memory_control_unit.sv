@@ -10,7 +10,7 @@ module rip_memory_control_unit #(
     parameter ADDR_WIDTH = 32
 ) (
     input wire clk,
-    // input wire rstn,
+    input wire rstn,
     // input rip_common::inst_t instruction,
     input wire [3:0] we_1,
     input wire re_1,
@@ -36,8 +36,16 @@ module rip_memory_control_unit #(
 `endif  // VERILATOR
     end
 
-    assign busy_1 = 1'b0;
-    assign busy_2 = 1'b0;
+    logic [31:0] addr_1_buf;
+    logic [31:0] addr_2_buf;
+
+    logic [2:0] busy_1_cnt;
+    logic [2:0] busy_2_cnt;
+    localparam bit [2:0] BUSY_1_CNT_MAX = 3;
+    localparam bit [2:0] BUSY_2_CNT_MAX = 3;
+
+    assign busy_1 = busy_1_cnt != 0;
+    assign busy_2 = busy_2_cnt != 0;
 
     always_ff @(posedge clk) begin
         for (integer i = 0; i < 4; i = i + 1) begin
@@ -46,12 +54,34 @@ module rip_memory_control_unit #(
             end
         end
 
-        if (re_1) begin
-            dout_1 <= mem_block[addr_1];
+        if (!rstn) begin
+            busy_1_cnt <= 0;
+            busy_2_cnt <= 0;
         end
+        else begin
+            if (re_1 & !busy_1) begin
+                addr_1_buf <= addr_1;
+                busy_1_cnt <= 3'd1;
+            end
+            else if (busy_1 & busy_1_cnt < BUSY_1_CNT_MAX) begin
+                busy_1_cnt <= busy_1_cnt + 1;
+            end
+            else if (busy_1_cnt == BUSY_1_CNT_MAX) begin
+                dout_1 <= mem_block[addr_1_buf];
+                busy_1_cnt <= 0;
+            end
 
-        if (re_2) begin
-            dout_2 <= mem_block[addr_2];
+            if (re_2 & !busy_2) begin
+                addr_2_buf <= addr_2;
+                busy_2_cnt <= 3'd1;
+            end
+            else if (busy_2 && busy_2_cnt < BUSY_2_CNT_MAX) begin
+                busy_2_cnt <= busy_2_cnt + 1;
+            end
+            else if (busy_2_cnt == BUSY_2_CNT_MAX) begin
+                dout_2 <= mem_block[addr_2_buf];
+                busy_2_cnt <= 0;
+            end
         end
     end
 endmodule
