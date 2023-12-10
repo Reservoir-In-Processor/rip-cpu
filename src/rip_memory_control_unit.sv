@@ -36,39 +36,57 @@ module rip_memory_control_unit #(
 `endif  // VERILATOR
     end
 
-    logic [31:0] addr_1_buf;
+    logic [3:0] we_1_buf;
+    logic [31:0] addr_1_buf_r;
+    logic [31:0] addr_1_buf_w;
     logic [31:0] addr_2_buf;
+    logic [31:0] din_1_buf;
 
-    logic [2:0] busy_1_cnt;
+    logic [2:0] busy_1_cnt_r;
+    logic [2:0] busy_1_cnt_w;
     logic [2:0] busy_2_cnt;
     localparam bit [2:0] BUSY_1_CNT_MAX = 3;
     localparam bit [2:0] BUSY_2_CNT_MAX = 3;
 
-    assign busy_1 = busy_1_cnt != 0;
+    assign busy_1 = busy_1_cnt_r != 0 || busy_1_cnt_w != 0;
     assign busy_2 = busy_2_cnt != 0;
 
     always_ff @(posedge clk) begin
-        for (integer i = 0; i < 4; i = i + 1) begin
-            if (we_1[i]) begin
-                mem_block[addr_1][i*8 +: 8] <= din_1[i*8 +: 8];
-            end
-        end
-
         if (!rstn) begin
-            busy_1_cnt <= 0;
+            busy_1_cnt_r <= 0;
+            busy_1_cnt_w <= 0;
             busy_2_cnt <= 0;
+            din_1_buf <= 0;
         end
         else begin
             if (re_1 & !busy_1) begin
-                addr_1_buf <= addr_1;
-                busy_1_cnt <= 3'd1;
+                addr_1_buf_r <= addr_1;
+                busy_1_cnt_r <= 3'd1;
             end
-            else if (busy_1 & busy_1_cnt < BUSY_1_CNT_MAX) begin
-                busy_1_cnt <= busy_1_cnt + 1;
+            else if (0 < busy_1_cnt_r & busy_1_cnt_r < BUSY_1_CNT_MAX) begin
+                busy_1_cnt_r <= busy_1_cnt_r + 1;
             end
-            else if (busy_1_cnt == BUSY_1_CNT_MAX) begin
-                dout_1 <= mem_block[addr_1_buf];
-                busy_1_cnt <= 0;
+            else if (busy_1_cnt_r == BUSY_1_CNT_MAX) begin
+                dout_1 <= mem_block[addr_1_buf_r];
+                busy_1_cnt_r <= 0;
+            end
+
+            if (we_1 != 0 & !busy_1) begin
+                we_1_buf <= we_1;
+                addr_1_buf_w <= addr_1;
+                din_1_buf <= din_1;
+                busy_1_cnt_w <= 3'd1;
+            end
+            else if (0 < busy_1_cnt_w & busy_1_cnt_w < BUSY_1_CNT_MAX) begin
+                busy_1_cnt_w <= busy_1_cnt_w + 1;
+            end
+            else if (busy_1_cnt_w == BUSY_1_CNT_MAX) begin
+                for (integer i = 0; i < 4; i = i + 1) begin
+                    if (we_1_buf[i]) begin
+                        mem_block[addr_1_buf_w][i*8 +: 8] <= din_1_buf[i*8 +: 8];
+                    end
+                end
+                busy_1_cnt_w <= 0;
             end
 
             if (re_2 & !busy_2) begin
