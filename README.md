@@ -6,6 +6,15 @@
 
 This project implements a pipeline processor for the RV32IM instruction set architecture in SystemVerilog.
 
+## Requirements
+
+To use this project, you need to have the following tools installed:
+
+- [Ninja](https://ninja-build.org/)
+- [Verilator](https://www.veripool.org/verilator/) (version 5.004 or higher)
+
+Make sure these tools are installed on your system before proceeding with the project.
+
 ## Usage
 
 ### Verilator Test
