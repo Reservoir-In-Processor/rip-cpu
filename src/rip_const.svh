@@ -9,7 +9,7 @@ localparam int DATA_WIDTH = W_WIDTH;     // data width
 localparam int NUM_COL = DATA_WIDTH / 8; // number of columns in memory
 
 localparam bit [31:0] START_ADDR = 32'h0;
-localparam bit [31:0] SP_ADDR = 32'1 << 25;
+localparam bit [31:0] SP_ADDR = 32'h1 << 25;
 
 localparam bit [11:0] MTVEC = 12'h305;
 localparam bit [11:0] MEPC = 12'h341;
