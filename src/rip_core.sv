@@ -1,33 +1,32 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
-`include "rip_common.sv"
-
-module rip_core (
+module rip_core
+    import rip_type::*;
+    import rip_const::*;
+    import rip_config::*;
+#(
+    parameter int REG_ADDR_WIDTH = 5,
+    parameter int CSR_ADDR_WIDTH = 12,
+    parameter int DATA_WIDTH = 32,
+    parameter int NUM_COL = DATA_WIDTH / B_WIDTH  // number of columns in memory
+) (
     input rst_n,
     input clk
 `ifdef VERILATOR
-    , output wire [31:0] riscv_tests_passed
+    , output wire [DATA_WIDTH-1:0] riscv_tests_passed
 `endif  // VERILATOR
 );
-    import rip_common::*;
-
     csr_t csr;
-
-    typedef struct packed {
-        logic INVALID;
-        logic STALL;
-        logic READY;
-    } state_t;
 
     /* -------------------------------- *
      * Stage 0: PC (program counter)    *
      * -------------------------------- */
 
     state_t pc_state, pc_state_reg;
-    logic [31:0] pc;
-    logic [31:0] pc_next;
-    logic [31:0] pc_next_buf;
+    logic [DATA_WIDTH-1:0] pc;
+    logic [DATA_WIDTH-1:0] pc_next;
+    logic [DATA_WIDTH-1:0] pc_next_buf;
     logic pc_next_buf_valid;
 
     always_comb begin
@@ -100,15 +99,15 @@ module rip_core (
      * -------------------------------- */
 
     state_t if_state, if_state_reg;
-    logic [31:0] if_pc;
-    wire [31:0] if_inst_code;
+    logic [DATA_WIDTH-1:0] if_pc;
+    wire [DATA_WIDTH-1:0] if_inst_code;
 
-    wire [4:0] if_rs1_num;
-    wire [4:0] if_rs2_num;
-    wire [4:0] if_rd_num;
-    wire [11:0] if_csr_num;
+    wire [REG_ADDR_WIDTH-1:0] if_rs1_num;
+    wire [REG_ADDR_WIDTH-1:0] if_rs2_num;
+    wire [REG_ADDR_WIDTH-1:0] if_rd_num;
+    wire [CSR_ADDR_WIDTH-1:0] if_csr_num;
 
-    wire [31:0] if_dout;
+    wire [DATA_WIDTH-1:0] if_dout;
 
     // assign if_inst_code = (de_state.READY & !ex_state.STALL) ? if_dout : 32'h0;
     assign if_inst_code = if_dout;
@@ -155,22 +154,22 @@ module rip_core (
      * -------------------------------- */
 
     state_t de_state, de_state_reg;
-    logic [31:0] de_pc;
+    logic [DATA_WIDTH-1:0] de_pc;
     inst_t de_inst;
 
-    logic [4:0] de_rs1_num;
-    logic [4:0] de_rs2_num;
-    logic [4:0] de_rd_num;
-    logic [11:0] de_csr_num;
+    logic [REG_ADDR_WIDTH-1:0] de_rs1_num;
+    logic [REG_ADDR_WIDTH-1:0] de_rs2_num;
+    logic [REG_ADDR_WIDTH-1:0] de_rd_num;
+    logic [CSR_ADDR_WIDTH-1:0] de_csr_num;
 
-    wire [31:0] de_rs1_reg;
-    wire [31:0] de_rs2_reg;
-    logic [31:0] de_rs1;
-    logic [31:0] de_rs2;
-    wire [31:0] de_imm;
-    wire [4:0] de_csr_zimm;
-    logic [31:0] de_csr_reg;
-    logic [31:0] de_csr;
+    wire [DATA_WIDTH-1:0] de_rs1_reg;
+    wire [DATA_WIDTH-1:0] de_rs2_reg;
+    logic [DATA_WIDTH-1:0] de_rs1;
+    logic [DATA_WIDTH-1:0] de_rs2;
+    wire [DATA_WIDTH-1:0] de_imm;
+    wire [REG_ADDR_WIDTH-1:0] de_csr_zimm;
+    logic [DATA_WIDTH-1:0] de_csr_reg;
+    logic [DATA_WIDTH-1:0] de_csr;
 
     rip_decode decode (
         .rst_n(rst_n),
@@ -293,22 +292,22 @@ module rip_core (
      * -------------------------------- */
 
     state_t ex_state, ex_state_reg;
-    logic [31:0] ex_pc;
+    logic [DATA_WIDTH-1:0] ex_pc;
     inst_t ex_inst;
     wire ex_stall_by_load;
     wire ex_flush_by_jmp;
 
-    logic [4:0] ex_rd_num;
-    logic [11:0] ex_csr_num;
+    logic [REG_ADDR_WIDTH-1:0] ex_rd_num;
+    logic [CSR_ADDR_WIDTH-1:0] ex_csr_num;
 
-    logic [31:0] ex_rs1;
-    logic [31:0] ex_rs2;
-    logic [31:0] ex_imm;
+    logic [DATA_WIDTH-1:0] ex_rs1;
+    logic [DATA_WIDTH-1:0] ex_rs2;
+    logic [DATA_WIDTH-1:0] ex_imm;
 
-    logic [4:0] ex_csr_zimm;
-    logic [31:0] ex_csr;
+    logic [REG_ADDR_WIDTH-1:0] ex_csr_zimm;
+    logic [DATA_WIDTH-1:0] ex_csr;
 
-    wire [31:0] ex_alu_rslt;
+    wire [DATA_WIDTH-1:0] ex_alu_rslt;
 
     rip_alu alu (
         .rst_n(rst_n),
@@ -436,12 +435,12 @@ module rip_core (
     inst_t ma_inst;
     wire ma_stall_by_load;
 
-    logic [31:0] ma_alu_rslt;
-    logic [4:0] ma_rd_num;
-    logic [11:0] ma_csr_num;
-    logic [31:0] ma_csr;
+    logic [DATA_WIDTH-1:0] ma_alu_rslt;
+    logic [REG_ADDR_WIDTH-1:0] ma_rd_num;
+    logic [CSR_ADDR_WIDTH-1:0] ma_csr_num;
+    logic [DATA_WIDTH-1:0] ma_csr;
 
-    wire [31:0] ma_ram_dout;
+    wire [DATA_WIDTH-1:0] ma_ram_dout;
 
     always_comb begin
         if (ma_state_reg.INVALID) begin
@@ -491,14 +490,14 @@ module rip_core (
         end
     end
 
-    wire [3:0] we_1;
+    wire [NUM_COL-1:0] we_1;
     wire re_1;
     wire re_2;
-    wire [31:0] addr_1;
-    wire [31:0] addr_2;
-    wire [31:0] din_1;
-    wire [31:0] dout_1;
-    wire [31:0] dout_2;
+    wire [DATA_WIDTH-1:0] addr_1;
+    wire [DATA_WIDTH-1:0] addr_2;
+    wire [DATA_WIDTH-1:0] din_1;
+    wire [DATA_WIDTH-1:0] dout_1;
+    wire [DATA_WIDTH-1:0] dout_2;
     wire busy_1;
     wire busy_2;
 
@@ -552,10 +551,10 @@ module rip_core (
 
     wire ma_reg_wen;
     wire ma_csr_wen;
-    logic [31:0] ma_wdata;
+    logic [DATA_WIDTH-1:0] ma_wdata;
 
-    logic [4:0] wb_rd_num;
-    logic [31:0] wb_wdata;
+    logic [REG_ADDR_WIDTH-1:0] wb_rd_num;
+    logic [DATA_WIDTH-1:0] wb_wdata;
 
     assign ma_reg_wen = wb_state.READY && ma_inst.UPDATE_REG;
     assign ma_csr_wen = wb_state.READY && ma_inst.UPDATE_CSR;
@@ -656,8 +655,8 @@ module rip_core (
 
 `ifdef VERILATOR
     integer file_handle, t;
-    logic [31:0] de_inst_code, ex_inst_code, ma_inst_code, wb_inst_code;
-    logic [31:0] ma_pc, wb_pc;
+    logic [DATA_WIDTH-1:0] de_inst_code, ex_inst_code, ma_inst_code, wb_inst_code;
+    logic [DATA_WIDTH-1:0] ma_pc, wb_pc;
     logic finished;
 
     assign riscv_tests_passed = regfile.regfile[3];

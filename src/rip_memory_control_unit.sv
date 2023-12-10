@@ -1,13 +1,14 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
-`include "rip_common.sv"
-
 // Module: rip_memory_control_unit
 // Description: byte addressing memory system top module.
-module rip_memory_control_unit #(
-    parameter DATA_WIDTH = 32, // data port width
-    parameter ADDR_WIDTH = 32
+module rip_memory_control_unit
+    import rip_const::*;
+    import rip_type::*;
+#(
+    parameter int DATA_WIDTH = 32,  // data port width
+    parameter int ADDR_WIDTH = 22
 ) (
     input wire clk,
     input wire rstn,
@@ -15,18 +16,16 @@ module rip_memory_control_unit #(
     input wire [3:0] we_1,
     input wire re_1,
     input wire re_2,
-    input wire [ADDR_WIDTH-1:0] addr_1,
-    input wire [ADDR_WIDTH-1:0] addr_2,
+    input wire [DATA_WIDTH-1:0] addr_1,
+    input wire [DATA_WIDTH-1:0] addr_2,
     input wire [DATA_WIDTH-1:0] din_1,
     output logic [DATA_WIDTH-1:0] dout_1,
     output logic [DATA_WIDTH-1:0] dout_2,
     output wire busy_1,
     output wire busy_2
 );
-    import rip_common::*;
-
     (* ram_style = "block" *)
-    reg [rip_common::DATA_WIDTH-1:0] mem_block[1<<rip_common::ADDR_WIDTH];
+    reg [DATA_WIDTH-1:0] mem_block[1<<ADDR_WIDTH];
 
     initial begin
 `ifdef VERILATOR
@@ -36,15 +35,15 @@ module rip_memory_control_unit #(
 `endif  // VERILATOR
     end
 
-    logic [3:0] we_1_buf;
+    logic [ 3:0] we_1_buf;
     logic [31:0] addr_1_buf_r;
     logic [31:0] addr_1_buf_w;
     logic [31:0] addr_2_buf;
     logic [31:0] din_1_buf;
 
-    logic [2:0] busy_1_cnt_r;
-    logic [2:0] busy_1_cnt_w;
-    logic [2:0] busy_2_cnt;
+    logic [ 2:0] busy_1_cnt_r;
+    logic [ 2:0] busy_1_cnt_w;
+    logic [ 2:0] busy_2_cnt;
     localparam bit [2:0] BUSY_1_CNT_MAX = 3;
     localparam bit [2:0] BUSY_2_CNT_MAX = 3;
 
@@ -83,7 +82,7 @@ module rip_memory_control_unit #(
             else if (busy_1_cnt_w == BUSY_1_CNT_MAX) begin
                 for (integer i = 0; i < 4; i = i + 1) begin
                     if (we_1_buf[i]) begin
-                        mem_block[addr_1_buf_w][i*8 +: 8] <= din_1_buf[i*8 +: 8];
+                        mem_block[addr_1_buf_w][i*8+:8] <= din_1_buf[i*8+:8];
                     end
                 end
                 busy_1_cnt_w <= 0;

@@ -7,9 +7,13 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
-`include "rip_common.sv"
-
-module rip_memory_access (
+module rip_memory_access
+    import rip_const::*;
+    import rip_type::*;
+#(
+    parameter int DATA_WIDTH = 32,
+    parameter int NUM_COL = DATA_WIDTH / 8
+) (
     input wire clk,
 
     output logic [3:0] we_1,
@@ -22,19 +26,17 @@ module rip_memory_access (
     input wire [31:0] dout_2,
 
     input wire if_ready,
-    input wire [rip_common::DATA_WIDTH-1:0] pc,
-    output logic [rip_common::DATA_WIDTH-1:0] if_dout,
+    input wire [DATA_WIDTH-1:0] pc,
+    output logic [DATA_WIDTH-1:0] if_dout,
 
     input wire ma_ready,
-    input rip_common::inst_t ex_inst,
-    input rip_common::inst_t ma_inst,
-    input wire [rip_common::DATA_WIDTH-1:0] ex_addr,
-    input wire [rip_common::DATA_WIDTH-1:0] ma_addr,
-    input wire [rip_common::DATA_WIDTH-1:0] ex_din,
-    output wire [rip_common::DATA_WIDTH-1:0] ma_dout
+    input inst_t ex_inst,
+    input inst_t ma_inst,
+    input wire [DATA_WIDTH-1:0] ex_addr,
+    input wire [DATA_WIDTH-1:0] ma_addr,
+    input wire [DATA_WIDTH-1:0] ex_din,
+    output wire [DATA_WIDTH-1:0] ma_dout
 );
-    import rip_common::*;
-
     logic [1:0] ex_mem_offset;
     logic [1:0] ma_mem_offset;
 

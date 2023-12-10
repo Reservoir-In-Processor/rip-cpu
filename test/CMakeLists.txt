@@ -60,9 +60,9 @@ gtest_discover_tests(test_all)
 verilate(test_all
   INCLUDE_DIRS "../src"
   SOURCES
-  ../src/rip_const.svh
-  ../src/rip_type.svh
-  ../src/rip_common.sv
+  ../src/rip_const.sv
+  ../src/rip_config.sv
+  ../src/rip_type.sv
   ../src/rip_decode.sv
   PREFIX Vdecode
 )
@@ -70,9 +70,9 @@ verilate(test_all
 verilate(test_all
   INCLUDE_DIRS "../src"
   SOURCES
-  ../src/rip_const.svh
-  ../src/rip_type.svh
-  ../src/rip_common.sv
+  ../src/rip_const.sv
+  ../src/rip_config.sv
+  ../src/rip_type.sv
   ../src/rip_alu.sv
   PREFIX Valu
 )
@@ -81,9 +81,9 @@ verilate(test_all
 verilate(test_all
   INCLUDE_DIRS "../src"
   SOURCES
-    ../src/rip_const.svh
-    ../src/rip_type.svh
-    ../src/rip_common.sv
+    ../src/rip_const.sv
+    ../src/rip_config.sv
+    ../src/rip_type.sv
     ../src/rip_alu.sv
     ../src/rip_regfile.sv
     ../src/rip_csr.sv

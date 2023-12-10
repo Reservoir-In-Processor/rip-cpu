@@ -1,15 +1,16 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
-`include "rip_common.sv"
-
 // returns {valid, csr_value}
-function static [31:0] read_csr(
-    input rip_common::csr_t csr,
+function static [31:0] read_csr
+(
+    input rip_type::csr_t csr,
     input logic [11:0] csr_num
 );
     begin
-        import rip_common::*;
+        import rip_config::*;
+        import rip_type::*;
+
         case (csr_num)
             MTVEC: read_csr = csr.mtvec;
             MEPC: read_csr = csr.mepc;
@@ -21,11 +22,13 @@ endfunction: read_csr
 
 // set csr value
 task static write_csr(
-    inout rip_common::csr_t csr,
+    inout rip_type::csr_t csr,
     input logic [11:0] csr_num,
     input logic [31:0] csr_value);
     begin
-        import rip_common::*;
+        import rip_config::*;
+        import rip_type::*;
+        
         case (csr_num)
             MTVEC: csr.mtvec = csr_value;
             MEPC: csr.mepc = csr_value;

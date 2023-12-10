@@ -1,9 +1,12 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
-`include "rip_common.sv"
-
-module rip_decode (
+module rip_decode
+    import rip_type::*;
+#(
+    parameter int REG_ADDR_WIDTH = 5,
+    parameter int CSR_ADDR_WIDTH = 12
+) (
     input rst_n,
     input clk,
 
@@ -14,23 +17,23 @@ module rip_decode (
     input [31:0] inst_code,
 
     // register number
-    output wire  [4:0] if_rs1_num,
-    output wire  [4:0] if_rs2_num,
-    output wire  [4:0] if_rd_num,
-    output logic [4:0] de_rs1_num,
-    output logic [4:0] de_rs2_num,
-    output logic [4:0] de_rd_num,
+    output wire  [REG_ADDR_WIDTH-1:0] if_rs1_num,
+    output wire  [REG_ADDR_WIDTH-1:0] if_rs2_num,
+    output wire  [REG_ADDR_WIDTH-1:0] if_rd_num,
+    output logic [REG_ADDR_WIDTH-1:0] de_rs1_num,
+    output logic [REG_ADDR_WIDTH-1:0] de_rs2_num,
+    output logic [REG_ADDR_WIDTH-1:0] de_rd_num,
 
     // csr number
-    output wire  [11:0] if_csr_num,
-    output wire  [11:0] de_csr_num,
-    output logic [ 4:0] csr_zimm,
+    output wire  [CSR_ADDR_WIDTH-1:0] if_csr_num,
+    output wire  [CSR_ADDR_WIDTH-1:0] de_csr_num,
+    output logic [REG_ADDR_WIDTH-1:0] csr_zimm,
 
     // immediate
     output logic [31:0] imm,
 
     // instructions and pipeline control
-    output rip_common::inst_t inst
+    output inst_t inst
 );
 
     // instruction type and immediate
@@ -141,8 +144,8 @@ module rip_decode (
     end
 
     // function code
-    wire [ 6:0] funct7;
-    wire [ 2:0] funct3;
+    wire [6:0] funct7;
+    wire [2:0] funct3;
     wire [11:0] funct12;
     assign funct7  = inst_code[31:25];
     assign funct3  = inst_code[14:12];

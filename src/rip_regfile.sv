@@ -1,9 +1,9 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
-`include "rip_common.sv"
-
-module rip_regfile (
+module rip_regfile
+    import rip_config::*;
+(
     input rst_n,
     input clk,
 
@@ -17,8 +17,6 @@ module rip_regfile (
     output reg [31:0] rs1,
     output reg [31:0] rs2
 );
-    import rip_common::*;
-
     reg [31:0] regfile[32];
 
     // initialize and write
