@@ -12,9 +12,12 @@ module rip_core
     parameter int NUM_COL = DATA_WIDTH / B_WIDTH  // number of columns in memory
 ) (
     input rst_n,
-    input clk
+    input clk,
+
 `ifdef VERILATOR
-    , output wire [DATA_WIDTH-1:0] riscv_tests_passed
+    output wire [DATA_WIDTH-1:0] riscv_tests_passed
+`else
+    rip_axi_interface.master M_AXI
 `endif  // VERILATOR
 );
     csr_t csr;
@@ -526,7 +529,8 @@ module rip_core
         .ma_dout (ma_ram_dout)
     );
 
-    rip_memory_control_unit memory_control_unit (
+`ifdef VERILATOR
+    rip_mmu_stub mmu_stub (
         .clk(clk),
         .rstn(rst_n),
 
@@ -541,6 +545,24 @@ module rip_core
         .busy_1(busy_1),
         .busy_2(busy_2)
     );
+`else
+    rip_memory_management_unit memory_management_unit (
+        .clk(clk),
+        .rstn(rst_n),
+
+        .we_1(we_1),
+        .re_1(re_1),
+        .re_2(re_2),
+        .addr_1(addr_1),
+        .addr_2(addr_2),
+        .din_1(din_1),
+        .dout_1(dout_1),
+        .dout_2(dout_2),
+        .busy_1(busy_1),
+        .busy_2(busy_2),
+        .M_AXI(M_AXI)
+    );
+`endif  // VERILATOR
 
     /* -------------------------------- *
      * Stage 5: WB (write back)         *

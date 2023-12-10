@@ -87,7 +87,7 @@ verilate(test_all
     ../src/rip_alu.sv
     ../src/rip_regfile.sv
     ../src/rip_csr.sv
-    ../src/rip_memory_control_unit.sv
+    ../src/stub/rip_mmu_stub.sv
     ../src/rip_memory_access.sv
     ../src/rip_decode.sv
     ../src/rip_core.sv

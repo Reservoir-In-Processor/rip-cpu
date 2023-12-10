@@ -42,12 +42,12 @@ module rip_memory_access
 
     // instruction fetch
     assign re_2 = if_ready;
-    assign addr_2 = {2'b0, pc[31:2]};
+    assign addr_2 = {pc[31:2], 2'b0};
     assign if_dout = dout_2;
 
     // memory access
     assign re_1 = ma_ready & (ex_inst.LB | ex_inst.LH | ex_inst.LBU | ex_inst.LHU | ex_inst.LW);
-    assign addr_1 = {2'b0, ex_addr[31:2]};
+    assign addr_1 = {ex_addr[31:2], 2'b0};
     always_comb begin
         ex_mem_offset = ex_addr[1:0];
         ma_mem_offset = ma_addr[1:0];

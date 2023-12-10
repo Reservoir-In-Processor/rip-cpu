@@ -1,9 +1,9 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
-// Module: rip_memory_control_unit
-// Description: byte addressing memory system top module.
-module rip_memory_control_unit
+// Module: rip_mmu_stub
+// Description: byte addressing memory system stub.
+module rip_mmu_stub
     import rip_const::*;
     import rip_type::*;
 #(
@@ -35,6 +35,9 @@ module rip_memory_control_unit
 `endif  // VERILATOR
     end
 
+    logic [31:0] addr_1_word;
+    logic [31:0] addr_2_word;
+
     logic [ 3:0] we_1_buf;
     logic [31:0] addr_1_buf_r;
     logic [31:0] addr_1_buf_w;
@@ -47,6 +50,8 @@ module rip_memory_control_unit
     localparam bit [2:0] BUSY_1_CNT_MAX = 3;
     localparam bit [2:0] BUSY_2_CNT_MAX = 3;
 
+    assign addr_1_word = {2'b0, addr_1[DATA_WIDTH-1:2]};
+    assign addr_2_word = {2'b0, addr_2[DATA_WIDTH-1:2]};
     assign busy_1 = busy_1_cnt_r != 0 || busy_1_cnt_w != 0;
     assign busy_2 = busy_2_cnt != 0;
 
@@ -59,7 +64,7 @@ module rip_memory_control_unit
         end
         else begin
             if (re_1 & !busy_1) begin
-                addr_1_buf_r <= addr_1;
+                addr_1_buf_r <= addr_1_word;
                 busy_1_cnt_r <= 3'd1;
             end
             else if (0 < busy_1_cnt_r & busy_1_cnt_r < BUSY_1_CNT_MAX) begin
@@ -72,7 +77,7 @@ module rip_memory_control_unit
 
             if (we_1 != 0 & !busy_1) begin
                 we_1_buf <= we_1;
-                addr_1_buf_w <= addr_1;
+                addr_1_buf_w <= addr_1_word;
                 din_1_buf <= din_1;
                 busy_1_cnt_w <= 3'd1;
             end
@@ -89,7 +94,7 @@ module rip_memory_control_unit
             end
 
             if (re_2 & !busy_2) begin
-                addr_2_buf <= addr_2;
+                addr_2_buf <= addr_2_word;
                 busy_2_cnt <= 3'd1;
             end
             else if (busy_2 && busy_2_cnt < BUSY_2_CNT_MAX) begin
