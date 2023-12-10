@@ -61,7 +61,7 @@ protected:
 };
 
 namespace {
-const unsigned N = 10;
+const int N = 10;
 TEST_F(TestAlu, Lui) {
   inst_bit_t inst_bit = {0};
   inst_bit.LUI = 1;
