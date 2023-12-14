@@ -1,10 +1,10 @@
-# rip-cpu
+# Reservoir in Processor
 
 [![Linter](https://github.com/Reservoir-In-Processor/rip-cpu/actions/workflows/linter.yaml/badge.svg)](https://github.com/Reservoir-In-Processor/rip-cpu/actions/workflows/linter.yaml)
 [![Verilator Test](https://github.com/Reservoir-In-Processor/rip-cpu/actions/workflows/main.yaml/badge.svg)](https://github.com/Reservoir-In-Processor/rip-cpu/actions/workflows/main.yaml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-This project implements a pipeline processor for the RV32IM instruction set architecture in SystemVerilog.
+This project implements a pipeline processor based on RISC-V (RV32IM) instruction set architecture in SystemVerilog.
 
 ## Requirements
 
