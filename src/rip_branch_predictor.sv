@@ -3,15 +3,14 @@
 
 //
 // branch predictor implementation
-// - bimodal predictor
+// - Bimodal predictor
+// - define 'GSHARE' to use as Gshare predictor
 //
 
 module rip_branch_predictor #(
     // Pattern History Table
     parameter PHT_LSB = 0,
-    parameter PHT_MSB = 31,
-    // Global History
-    parameter GLOBAL_HISTORY_DEPTH = 10
+    parameter PHT_MSB = 31
 ) (
     input wire clk,
     input wire rstn,
@@ -23,10 +22,12 @@ module rip_branch_predictor #(
 
     localparam PHT_DEPTH = PHT_MSB - PHT_LSB + 1;
     localparam PH_WIDTH = 2; // two bit saturating counter
+    localparam GLOBAL_HISTORY_DEPTH = PHT_DEPTH;
 
     logic [PHT_DEPTH-1:0] previous_index;
     logic [PHT_DEPTH-1:0] current_index;
-    assign current_index = pc[PHT_MSB:PHT_LSB];
+    logic [PHT_DEPTH-1:0] global_histroy;
+    assign current_index = pc[PHT_MSB:PHT_LSB] ^ global_histroy;
 
     typedef enum logic [PH_WIDTH-1:0] {
         STRONGLY_UNTAKEN = 'b00,
@@ -44,13 +45,22 @@ module rip_branch_predictor #(
 
     always_ff @(posedge clk) begin
         if (~rstn) begin
+            global_histroy <= '0;
             previous_index <= '0;
             previous_counter_value <= NONE;
         end else begin
             if (update) begin
+                `ifdef GSHARE
+                    if (PHT_DEPTH == 1) begin
+                        global_histroy <= actual;
+                    end else begin
+                        global_histroy <= {global_histroy[PHT_DEPTH-2:0], actual};
+                    end
+                `endif GSHARE
                 previous_index <= current_index;
                 previous_counter_value <= pred_counter_value;
             end else begin
+                global_histroy <= global_histroy;
                 previous_index <= previous_index;
                 previous_counter_value <= previous_counter_value;
             end
