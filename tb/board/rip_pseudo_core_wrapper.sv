@@ -60,7 +60,8 @@ module rip_pseudo_core_wrapper #(
         .DATA_WIDTH(AXI_DATA_WIDTH)
     ) axi_if ();
 
-    rip_pseudo_core #(
+    // rip_pseudo_core #(
+    rip_pseudo_core_mmu #(
         .ADDR_WIDTH(ADDR_WIDTH),
         .DATA_WIDTH(DATA_WIDTH),
         .AXI_ID_WIDTH(AXI_ID_WIDTH),
