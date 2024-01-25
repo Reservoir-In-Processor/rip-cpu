@@ -8,8 +8,7 @@ module rip_core
 #(
     parameter int REG_ADDR_WIDTH = 5,
     parameter int CSR_ADDR_WIDTH = 12,
-    parameter int DATA_WIDTH = 32,
-    parameter int NUM_COL = DATA_WIDTH / B_WIDTH  // number of columns in memory
+    parameter int DATA_WIDTH = 32
 ) (
     input rst_n,
     input clk,
@@ -20,6 +19,8 @@ module rip_core
     rip_axi_interface.master M_AXI
 `endif  // VERILATOR
 );
+    localparam NUM_COL = DATA_WIDTH / B_WIDTH; // number of columns in memory
+
     csr_t csr;
 
     /* -------------------------------- *
