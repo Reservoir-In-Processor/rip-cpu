@@ -8,10 +8,20 @@ module rip_core
 #(
     parameter int REG_ADDR_WIDTH = 5,
     parameter int CSR_ADDR_WIDTH = 12,
-    parameter int DATA_WIDTH = 32
+    parameter int DATA_WIDTH = 32,
+    parameter int AXI_ID_WIDTH = 4,
+    parameter int AXI_ADDR_WIDTH = 32,
+    parameter int AXI_DATA_WIDTH = 32
 ) (
     input rst_n,
     input clk,
+
+    // control signals
+    input run,
+    output busy,
+    // CMA region start addresses
+    input [AXI_ADDR_WIDTH-1:0] mem_head, // program data
+    input [AXI_ADDR_WIDTH-1:0] ret_head, // return data
 
 `ifdef VERILATOR
     output wire [DATA_WIDTH-1:0] riscv_tests_passed
@@ -547,7 +557,12 @@ module rip_core
         .busy_2(busy_2)
     );
 `else
-    rip_memory_management_unit memory_management_unit (
+    rip_memory_management_unit #(
+        .ADDR_WIDTH(AXI_ADDR_WIDTH),
+        .DATA_WIDTH(DATA_WIDTH),
+        .AXI_ID_WIDTH(AXI_ID_WIDTH),
+        .AXI_DATA_WIDTH(AXI_DATA_WIDTH)
+    ) memory_management_unit (
         .clk(clk),
         .rstn(rst_n),
 
