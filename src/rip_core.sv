@@ -13,7 +13,7 @@ module rip_core
     parameter int AXI_ADDR_WIDTH = 32,
     parameter int AXI_DATA_WIDTH = 32
 ) (
-    input rst_n,
+    input sys_rst_n,
     input clk,
 
     // control signals
@@ -32,6 +32,44 @@ module rip_core
     localparam NUM_COL = DATA_WIDTH / B_WIDTH; // number of columns in memory
 
     csr_t csr;
+
+    logic rst_n;
+    assign rst_n = sys_rst_n && busy;
+    /*
+        ~sys_rst_n | run | busy | ~rst_n
+        -|-|-|-
+        0 | 0 | 0 | 1
+        0 | 0 | 1 | 0 (busy)
+        0 | 1 | 0 | 1 (start)
+        0 | 1 | 1 | 0 (busy)
+        1 | 0 | 0 | 1
+        1 | 0 | 1 | 1
+        1 | 1 | 0 | 1
+        1 | 1 | 1 | 1
+    */
+
+    logic [AXI_ADDR_WIDTH-1:0] mem_offset;
+    logic [AXI_ADDR_WIDTH-1:0] ret_offset;
+
+    always_ff @(posedge clk) begin
+        if (~sys_rst_n) begin
+            busy <= '0;
+            mem_offset <= '0;
+            ret_offset <= '0;
+        end else begin
+            if (~busy) begin
+                if (run) begin
+                    busy <= '1;
+                    mem_offset <= mem_head;
+                    ret_offset <= ret_head;
+                end
+            end else begin
+                if (ext) begin // todo
+                    busy <= '0;
+                end
+            end
+        end
+    end
 
     /* -------------------------------- *
      * Stage 0: PC (program counter)    *
