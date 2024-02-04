@@ -6,8 +6,8 @@
 
 package rip_config;
 
-    localparam bit [31:0] START_ADDR = 32'h00008000;
-    localparam bit [31:0] SP_ADDR = 32'h00010000;
+    localparam bit [31:0] START_ADDR = 32'h0;
+    localparam bit [31:0] SP_ADDR = 32'h1 << 25;
 
     localparam bit [11:0] MTVEC = 12'h305;
     localparam bit [11:0] MEPC = 12'h341;
