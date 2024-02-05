@@ -93,6 +93,12 @@ package rip_type;
         logic [31:0] mepc;
         logic [31:0] mcause;
     } csr_t;
+    
+    typedef enum logic [1:0] {
+        FINISHED = 2'b00,
+        RUNNING  = 2'b01,
+        EXITPROC = 2'b10
+    } core_mode_t;
 
 endpackage : rip_type
 

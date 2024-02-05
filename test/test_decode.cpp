@@ -889,6 +889,36 @@ TEST_F(TestDecode, Remu) {
     EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
 }
 
+TEST_F(TestDecode, Extx) {
+    dut->set_inst_code(0x0000000B);  // extx
+
+    EXPECT_EQ(dut->de_rs1_num, 0);
+    EXPECT_EQ(dut->de_rs2_num, 0);
+    EXPECT_EQ(dut->de_rd_num, 0);
+    EXPECT_EQ(dut->imm, 0);
+
+    EXPECT_EQ(dut->get_inst_name(), "EXTX");
+    EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));
+}
+
+TEST_F(TestDecode, Ext) {
+    dut->set_inst_code(0x0010000B);  // ext
+
+    EXPECT_EQ(dut->de_rs1_num, 0);
+    EXPECT_EQ(dut->de_rs2_num, 0);
+    EXPECT_EQ(dut->de_rd_num, 0);
+    EXPECT_EQ(dut->imm, 0);
+
+    EXPECT_EQ(dut->get_inst_name(), "EXT");
+    EXPECT_FALSE(dut->get_ctrl_signal("ACCESS_MEM"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_REG"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_CSR"));
+    EXPECT_FALSE(dut->get_ctrl_signal("UPDATE_PC"));   
+}
+
 TEST_F(TestDecode, AddiNoRegUpdate) {
     dut->set_inst_code(0x00000013);  // addi x0, x0, 0 (NOP)
 

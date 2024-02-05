@@ -18,7 +18,7 @@ module rip_core
 
     // control signals
     input run,
-    output busy,
+    output logic busy,
     // CMA region start addresses
     input [AXI_ADDR_WIDTH-1:0] mem_head, // program data
     input [AXI_ADDR_WIDTH-1:0] ret_head, // return data
@@ -32,8 +32,10 @@ module rip_core
     localparam NUM_COL = DATA_WIDTH / B_WIDTH; // number of columns in memory
 
     csr_t csr;
+    core_mode_t mode;
 
     logic rst_n;
+
     assign rst_n = sys_rst_n && busy;
     /*
         ~sys_rst_n | run | busy | ~rst_n
@@ -64,7 +66,7 @@ module rip_core
                     ret_offset <= ret_head;
                 end
             end else begin
-                if (ext) begin // todo
+                if (mode == FINISHED) begin // todo
                     busy <= '0;
                 end
             end
@@ -119,7 +121,7 @@ module rip_core
     always_ff @(posedge clk) begin
         if (!rst_n) begin
             pc_state_reg <= 3'b100;
-            pc       <= START_ADDR - 32'h4;
+            pc       <= -32'h4;
         end
         else begin
             if (ex_stall_by_load) begin
@@ -479,6 +481,24 @@ module rip_core
         end
     end
 
+    // core mode
+    always_ff @(posedge clk) begin
+        if (!sys_rst_n) begin
+            mode = FINISHED;
+        end
+        else if (!rst_n) begin
+            mode = RUNNING;
+        end
+        else begin
+            if (ex_state.READY && de_inst.EXTX) begin
+                mode = EXITPROC;
+            end
+            else if (ex_state.READY && de_inst.EXT) begin
+                mode = FINISHED;
+            end
+        end
+    end
+
     /* -------------------------------- *
      * Stage 4: MA (memory access)      *
      * -------------------------------- */
@@ -578,6 +598,12 @@ module rip_core
         .ma_dout (ma_ram_dout)
     );
 
+    wire [DATA_WIDTH-1:0] mmu_addr_1;
+    wire [DATA_WIDTH-1:0] mmu_addr_2;
+
+    assign mmu_addr_1 = addr_1 | (mode == RUNNING ? mem_offset : ret_offset);
+    assign mmu_addr_2 = addr_2 | (mode == RUNNING ? mem_offset : ret_offset);
+
 `ifdef VERILATOR
     rip_mmu_stub mmu_stub (
         .clk(clk),
@@ -586,8 +612,8 @@ module rip_core
         .we_1(we_1),
         .re_1(re_1),
         .re_2(re_2),
-        .addr_1(addr_1),
-        .addr_2(addr_2),
+        .addr_1(mmu_addr_1),
+        .addr_2(mmu_addr_2),
         .din_1(din_1),
         .dout_1(dout_1),
         .dout_2(dout_2),
@@ -607,8 +633,8 @@ module rip_core
         .we_1(we_1),
         .re_1(re_1),
         .re_2(re_2),
-        .addr_1(addr_1),
-        .addr_2(addr_2),
+        .addr_1(mmu_addr_1),
+        .addr_2(mmu_addr_2),
         .din_1(din_1),
         .dout_1(dout_1),
         .dout_2(dout_2),

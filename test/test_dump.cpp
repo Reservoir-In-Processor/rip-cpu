@@ -29,23 +29,35 @@ TEST(TestCore, ExportWaveform) {
     tfp->open(WAVEFORM_FILE);
 
     // Format
-    dut->rst_n = 0;
+    dut->sys_rst_n = 0;
     dut->clk = 0;
+    dut->run = 0;
 
+    constexpr int TIME_START = 100;
     for (int time_counter = 0; time_counter < TIME_MAX; time_counter++) {
-        if (time_counter == 100) {
-            dut->rst_n = 1;
+        if (time_counter == 50) {
+            dut->sys_rst_n = 1;
+            dut->mem_head = 0;
+            dut->ret_head = 0;
         }
-
+        if (time_counter == TIME_START) {
+            dut->run = 1;
+        }
+        if (time_counter == TIME_START + 10) {
+            dut->run = 0;
+        }
         if ((time_counter % 5) == 0) {
             dut->clk = !dut->clk;  // Toggle clock
         }
 
         // Evaluate DUT
-        dut->eval();        
+        dut->eval();
         tfp->dump(time_counter);
-    }
 
+        if (time_counter > TIME_START && !dut->busy) {
+            break;
+        }
+    }
     dut->final();
     tfp->close();
     delete dut;
