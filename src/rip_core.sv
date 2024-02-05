@@ -13,11 +13,11 @@ module rip_core
     parameter int AXI_ADDR_WIDTH = 32,
     parameter int AXI_DATA_WIDTH = 32
 ) (
-    input sys_rst_n,
-    input clk,
+    input wire sys_rst_n,
+    input wire clk,
 
     // control signals
-    input run,
+    input wire run,
     output logic busy,
     // CMA region start addresses
     input [AXI_ADDR_WIDTH-1:0] mem_head, // program data

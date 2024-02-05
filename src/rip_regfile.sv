@@ -4,16 +4,16 @@
 module rip_regfile
     import rip_config::*;
 (
-    input rst_n,
-    input clk,
+    input wire rst_n,
+    input wire clk,
 
-    input de_ready,
-    input [4:0] ma_rd_num,
-    input wen,
-    input [31:0] wdata,
+    input wire de_ready,
+    input wire [4:0] ma_rd_num,
+    input wire wen,
+    input wire [31:0] wdata,
 
-    input [4:0] if_rs1_num,
-    input [4:0] if_rs2_num,
+    input wire [4:0] if_rs1_num,
+    input wire [4:0] if_rs2_num,
     output reg [31:0] rs1,
     output reg [31:0] rs2
 );

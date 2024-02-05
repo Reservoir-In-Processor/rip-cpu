@@ -7,14 +7,14 @@ module rip_decode
     parameter int REG_ADDR_WIDTH = 5,
     parameter int CSR_ADDR_WIDTH = 12
 ) (
-    input rst_n,
-    input clk,
+    input wire rst_n,
+    input wire clk,
 
-    input de_ready,
-    input ex_stall,
+    input wire de_ready,
+    input wire ex_stall,
 
     // instruction code
-    input [31:0] inst_code,
+    input wire [31:0] inst_code,
 
     // register number
     output wire  [REG_ADDR_WIDTH-1:0] if_rs1_num,
@@ -26,7 +26,7 @@ module rip_decode
 
     // csr number
     output wire  [CSR_ADDR_WIDTH-1:0] if_csr_num,
-    output wire  [CSR_ADDR_WIDTH-1:0] de_csr_num,
+    output logic [CSR_ADDR_WIDTH-1:0] de_csr_num,
     output logic [REG_ADDR_WIDTH-1:0] csr_zimm,
 
     // immediate

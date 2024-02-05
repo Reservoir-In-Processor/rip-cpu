@@ -7,9 +7,9 @@ module rip_alu
     parameter int DATA_WIDTH  = 32,
     parameter int SHAMT_WIDTH = 5
 ) (
-    input rst_n,
-    input clk,
-    input ex_ready,
+    input wire rst_n,
+    input wire clk,
+    input wire ex_ready,
 
     input inst_t inst,
 

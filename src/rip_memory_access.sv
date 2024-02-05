@@ -21,7 +21,7 @@ module rip_memory_access
     output wire re_2,
     output wire [31:0] addr_1,
     output wire [31:0] addr_2,
-    output wire [31:0] din_1,
+    output logic [31:0] din_1,
     input wire [31:0] dout_1,
     input wire [31:0] dout_2,
 
@@ -35,7 +35,7 @@ module rip_memory_access
     input wire [DATA_WIDTH-1:0] ex_addr,
     input wire [DATA_WIDTH-1:0] ma_addr,
     input wire [DATA_WIDTH-1:0] ex_din,
-    output wire [DATA_WIDTH-1:0] ma_dout
+    output logic [DATA_WIDTH-1:0] ma_dout
 );
     logic [1:0] ex_mem_offset;
     logic [1:0] ma_mem_offset;
