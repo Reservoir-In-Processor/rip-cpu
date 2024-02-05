@@ -2,7 +2,7 @@
 `timescale 1ns / 1ps
 
 // Module: rip_core_wrapper
-// Description: SystemVerilog wrapper for rip_core to expand AXI interface
+// Description: SystemVerilog wrapper for rip_core to expand AXI interface signals
 module rip_core_wrapper #(
     parameter int REG_ADDR_WIDTH = 5,
     parameter int CSR_ADDR_WIDTH = 12,
