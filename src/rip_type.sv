@@ -68,6 +68,12 @@ package rip_type;
         logic REM;
         logic REMU;
 
+        // Custom
+        // opcode  ... 7'b0001011
+        // funct12 ... EXTX: 12'b0, EXT: 12'b1
+        logic EXTX;
+        logic EXT;
+
         // pipeline control signals
         logic ACCESS_MEM;
         logic UPDATE_REG;

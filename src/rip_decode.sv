@@ -217,6 +217,10 @@ module rip_decode
             inst.REM <= inst_code[6:0] == 7'b0110011 && funct3 == 3'b110 && funct7 == 7'b0000001;
             inst.REMU <= inst_code[6:0] == 7'b0110011 && funct3 == 3'b111 && funct7 == 7'b0000001;
 
+            // Custom instruction
+            inst.EXTX <= inst_code[6:0] == 7'b0001011 && funct12 == 12'h0;
+            inst.EXT <= inst_code[6:0] == 7'b0001011 && funct12 == 12'h1;
+
             // pipeline control
             inst.ACCESS_MEM <= inst_code[6:0] == 7'b0000011  /* LOAD */ ||
                 inst_code[6:0] == 7'b0100011  /* STORE */;
