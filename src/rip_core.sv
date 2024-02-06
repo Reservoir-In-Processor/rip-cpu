@@ -20,8 +20,8 @@ module rip_core
     input wire run,
     output logic busy,
     // CMA region start addresses
-    input [AXI_ADDR_WIDTH-1:0] mem_head, // program data
-    input [AXI_ADDR_WIDTH-1:0] ret_head, // return data
+    input wire [AXI_ADDR_WIDTH-1:0] mem_head, // program data
+    input wire [AXI_ADDR_WIDTH-1:0] ret_head, // return data
 
 `ifdef VERILATOR
     output wire [DATA_WIDTH-1:0] riscv_tests_passed
@@ -287,7 +287,7 @@ module rip_core
 
     // assign de_csr_reg = read_csr(csr, if_csr_num);
     always_ff @(posedge clk) begin
-        de_csr_reg <= read_csr(csr, if_csr_num);
+        de_csr_reg <= rip_csr::read_csr(csr, if_csr_num);
     end
 
     // forwarding csr register
@@ -464,7 +464,7 @@ module rip_core
         end
         else begin
             if (ma_csr_wen) begin
-                write_csr(csr, ma_csr_num, ma_alu_rslt);
+                rip_csr::write_csr(csr, ma_csr_num, ma_alu_rslt);
             end
             // ECALL execution
             if (ex_state.READY && de_inst.ECALL) begin
