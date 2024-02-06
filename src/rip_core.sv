@@ -602,7 +602,7 @@ module rip_core
     wire [DATA_WIDTH-1:0] mmu_addr_2;
 
     assign mmu_addr_1 = addr_1 | (mode == RUNNING ? mem_offset : ret_offset);
-    assign mmu_addr_2 = addr_2 | (mode == RUNNING ? mem_offset : ret_offset);
+    assign mmu_addr_2 = addr_2 | mem_offset;
 
 `ifdef VERILATOR
     rip_mmu_stub mmu_stub (
