@@ -74,9 +74,9 @@ module rip_core_wrapper #(
         .REG_ADDR_WIDTH(REG_ADDR_WIDTH),
         .CSR_ADDR_WIDTH(CSR_ADDR_WIDTH),
         .DATA_WIDTH(DATA_WIDTH),
-        .ID_WIDTH(AXI_ID_WIDTH),
-        .ADDR_WIDTH(AXI_ADDR_WIDTH),
-        .DATA_WIDTH(AXI_DATA_WIDTH)
+        .AXI_ID_WIDTH(AXI_ID_WIDTH),
+        .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
+        .AXI_DATA_WIDTH(AXI_DATA_WIDTH)
     ) rip (
         .sys_rst_n(sys_rst_n),
         .clk(clk),
