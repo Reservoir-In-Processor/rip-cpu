@@ -62,7 +62,7 @@ TEST_P(RiscvTests, RiscvTests) {
     for (int time_counter = 0; time_counter < TIME_MAX; time_counter++) {
         if (time_counter == 50) {
             dut->sys_rst_n = 1;
-            dut->mem_head = 0;
+            dut->mem_head = 0x8000;
             dut->ret_head = 0;
         }
         if (time_counter == TIME_START) {
