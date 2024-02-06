@@ -13,12 +13,12 @@ module rip_alu
 
     input inst_t inst,
 
-    input [ DATA_WIDTH-1:0] rs1,
-    input [ DATA_WIDTH-1:0] rs2,
-    input [ DATA_WIDTH-1:0] pc,
-    input [ DATA_WIDTH-1:0] csr,
-    input [ DATA_WIDTH-1:0] imm,
-    input [SHAMT_WIDTH-1:0] zimm,
+    input wire [ DATA_WIDTH-1:0] rs1,
+    input wire [ DATA_WIDTH-1:0] rs2,
+    input wire [ DATA_WIDTH-1:0] pc,
+    input wire [ DATA_WIDTH-1:0] csr,
+    input wire [ DATA_WIDTH-1:0] imm,
+    input wire [SHAMT_WIDTH-1:0] zimm,
 
     output reg [DATA_WIDTH-1:0] rslt
 );
