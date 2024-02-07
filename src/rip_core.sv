@@ -756,6 +756,7 @@ module rip_core
 
 
 `ifdef VERILATOR
+    string filename;
     integer file_handle, t;
     logic [DATA_WIDTH-1:0] de_inst_code, ex_inst_code, ma_inst_code, wb_inst_code;
     logic [DATA_WIDTH-1:0] ma_pc, wb_pc;
@@ -764,7 +765,12 @@ module rip_core
     assign riscv_tests_passed = regfile.regfile[3];
 
     initial begin
-        file_handle = $fopen("dump.txt");
+        if ($value$plusargs("dump=%s", filename)) begin
+            file_handle = $fopen(filename);
+        end
+        else begin
+            file_handle = $fopen("dump.txt");
+        end
         t           = 0;
         finished    = 1'b0;
     end

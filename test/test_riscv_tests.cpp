@@ -48,6 +48,13 @@ TEST_P(RiscvTests, RiscvTests) {
         std::filesystem::create_directory(waveform_dir);
     }
 
+    // pass $value$plusargs to the simulator
+    std::string dump_filename = "../dump/" + testcase_name + ".txt";
+    std::string plusargs = "+dump=" + dump_filename;
+    char *argv[] = {const_cast<char *>(testcase_filename.c_str()),
+                    const_cast<char *>(plusargs.c_str())};
+    Verilated::commandArgs(2, argv);
+
     Verilated::traceEverOn(true);
     VerilatedVcdC *tfp = new VerilatedVcdC;
     dut->trace(tfp, 100);  // Trace 100 levels of hierarchy

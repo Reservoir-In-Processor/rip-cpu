@@ -28,6 +28,12 @@ TEST(TestCore, ExportWaveform) {
     dut->trace(tfp, 100);  // Trace 100 levels of hierarchy
     tfp->open(WAVEFORM_FILE);
 
+    // pass $value$plusargs to the simulator
+    std::string plusargs = "+dump=dump.txt";
+    char *argv[] = {const_cast<char *>(testcase_filename.c_str()),
+                    const_cast<char *>(plusargs.c_str())};
+    Verilated::commandArgs(2, argv);
+
     // Format
     dut->sys_rst_n = 0;
     dut->clk = 0;
