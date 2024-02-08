@@ -346,6 +346,19 @@ module rip_core (
         end
     end
 
+    // temporary finished signal; to be removed after merging with feature/fpga
+    logic finished;
+    always_ff @(posedge clk) begin
+        if (!rst_n) begin
+            finished <= 1'b0;
+        end
+        else begin
+            if ((de_inst_code == 32'hC0001073) || de_inst.EBREAK) begin
+                finished <= 1'b1;
+            end
+        end
+    end
+
     // csr
     always_ff @(posedge clk) begin
         if (!rst_n) begin
@@ -353,8 +366,13 @@ module rip_core (
             csr.mtvec   = 32'h0;
             csr.mepc    = 32'h0;
             csr.mcause  = 32'h0;
+            csr.cycle   = 32'h0;
         end
         else begin
+            if (!finished) begin
+                csr.cycle = csr.cycle + 32'h1;
+            end
+
             if (ma_csr_wen) begin
                 write_csr(csr, ma_csr_num, ma_alu_rslt);
             end
@@ -535,14 +553,12 @@ module rip_core (
     integer file_handle, t;
     logic [31:0] de_inst_code, ex_inst_code, ma_inst_code, wb_inst_code;
     logic [31:0] ma_pc, wb_pc;
-    logic finished;
 
     assign riscv_tests_passed = regfile.regfile[3];
 
     initial begin
         file_handle = $fopen("dump.txt");
         t           = 0;
-        finished    = 1'b0;
     end
 
     always_ff @(posedge clk) begin
@@ -614,7 +630,6 @@ module rip_core (
             // finish simulation when invalid instruction is executed
             if (wb_state.READY & !|wb_inst) begin
                 $fclose(file_handle);
-                finished <= 1'b1;
             end
         end
     end

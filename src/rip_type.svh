@@ -71,4 +71,5 @@ typedef struct packed {
     logic [31:0] mtvec;
     logic [31:0] mepc;
     logic [31:0] mcause;
+    logic [31:0] cycle;
 } csr_t;
