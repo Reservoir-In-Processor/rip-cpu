@@ -317,9 +317,6 @@ module rip_core
         if (!rst_n) begin
             de_state_reg   <= 3'b100;
             de_pc      <= 32'h0;
-
-            de_rd_num  <= 5'h0;
-            de_csr_num <= 12'h0;
         end
         else begin
             if ((!if_state.READY & !de_state.STALL) | ex_flush_by_jmp) begin
