@@ -1,36 +1,39 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
-`include "rip_common.sv"
+module rip_decode
+    import rip_type::*;
+#(
+    parameter int REG_ADDR_WIDTH = 5,
+    parameter int CSR_ADDR_WIDTH = 12
+) (
+    input wire rst_n,
+    input wire clk,
 
-module rip_decode (
-    input rst_n,
-    input clk,
-
-    input de_ready,
-    input ex_stall,
+    input wire de_ready,
+    input wire ex_stall,
 
     // instruction code
-    input [31:0] inst_code,
+    input wire [31:0] inst_code,
 
     // register number
-    output wire  [4:0] if_rs1_num,
-    output wire  [4:0] if_rs2_num,
-    output wire  [4:0] if_rd_num,
-    output logic [4:0] de_rs1_num,
-    output logic [4:0] de_rs2_num,
-    output logic [4:0] de_rd_num,
+    output wire  [REG_ADDR_WIDTH-1:0] if_rs1_num,
+    output wire  [REG_ADDR_WIDTH-1:0] if_rs2_num,
+    output wire  [REG_ADDR_WIDTH-1:0] if_rd_num,
+    output logic [REG_ADDR_WIDTH-1:0] de_rs1_num,
+    output logic [REG_ADDR_WIDTH-1:0] de_rs2_num,
+    output logic [REG_ADDR_WIDTH-1:0] de_rd_num,
 
     // csr number
-    output wire  [11:0] if_csr_num,
-    output wire  [11:0] de_csr_num,
-    output logic [ 4:0] csr_zimm,
+    output wire  [CSR_ADDR_WIDTH-1:0] if_csr_num,
+    output logic [CSR_ADDR_WIDTH-1:0] de_csr_num,
+    output logic [REG_ADDR_WIDTH-1:0] csr_zimm,
 
     // immediate
     output logic [31:0] imm,
 
     // instructions and pipeline control
-    output rip_common::inst_t inst
+    output inst_t inst
 );
 
     // instruction type and immediate
@@ -141,8 +144,8 @@ module rip_decode (
     end
 
     // function code
-    wire [ 6:0] funct7;
-    wire [ 2:0] funct3;
+    wire [6:0] funct7;
+    wire [2:0] funct3;
     wire [11:0] funct12;
     assign funct7  = inst_code[31:25];
     assign funct3  = inst_code[14:12];
@@ -213,6 +216,10 @@ module rip_decode (
             inst.DIVU <= inst_code[6:0] == 7'b0110011 && funct3 == 3'b101 && funct7 == 7'b0000001;
             inst.REM <= inst_code[6:0] == 7'b0110011 && funct3 == 3'b110 && funct7 == 7'b0000001;
             inst.REMU <= inst_code[6:0] == 7'b0110011 && funct3 == 3'b111 && funct7 == 7'b0000001;
+
+            // Custom instruction
+            inst.EXTX <= inst_code[6:0] == 7'b0001011 && funct12 == 12'h0;
+            inst.EXT <= inst_code[6:0] == 7'b0001011 && funct12 == 12'h1;
 
             // pipeline control
             inst.ACCESS_MEM <= inst_code[6:0] == 7'b0000011  /* LOAD */ ||

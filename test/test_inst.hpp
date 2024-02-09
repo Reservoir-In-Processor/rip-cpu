@@ -11,6 +11,10 @@ typedef struct {
     bool UPDATE_REG : 1;
     bool ACCESS_MEM : 1;
 
+    // Custom
+    bool EXT : 1;
+    bool EXTX : 1;
+
     // RV32M
     bool REMU : 1;
     bool REM : 1;

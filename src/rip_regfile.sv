@@ -1,24 +1,22 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
-`include "rip_common.sv"
+module rip_regfile
+    import rip_config::*;
+(
+    input wire rst_n,
+    input wire clk,
 
-module rip_regfile (
-    input rst_n,
-    input clk,
+    input wire de_ready,
+    input wire [4:0] ma_rd_num,
+    input wire wen,
+    input wire [31:0] wdata,
 
-    input de_ready,
-    input [4:0] ma_rd_num,
-    input wen,
-    input [31:0] wdata,
-
-    input [4:0] if_rs1_num,
-    input [4:0] if_rs2_num,
+    input wire [4:0] if_rs1_num,
+    input wire [4:0] if_rs2_num,
     output reg [31:0] rs1,
     output reg [31:0] rs2
 );
-    import rip_common::*;
-
     reg [31:0] regfile[32];
 
     // initialize and write

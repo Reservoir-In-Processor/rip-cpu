@@ -78,6 +78,10 @@ void Inst::init(const inst_bit_t& inst_bit) {
         {"DIVU", (bool)_inst_bit.DIVU},
         {"REM", (bool)_inst_bit.REM},
         {"REMU", (bool)_inst_bit.REMU},
+
+        // Custom
+        {"EXTX", (bool)_inst_bit.EXTX},
+        {"EXT", (bool)_inst_bit.EXT},
     };
 }
 

@@ -1,28 +1,33 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
-`include "rip_common.sv"
+module rip_alu
+    import rip_type::*;
+#(
+    parameter int DATA_WIDTH  = 32,
+    parameter int SHAMT_WIDTH = 5
+) (
+    input wire rst_n,
+    input wire clk,
+    input wire ex_ready,
 
-module rip_alu (
-    input rst_n,
-    input clk,
+    input inst_t inst,
 
-    input rip_common::inst_t inst,
+    input wire [ DATA_WIDTH-1:0] rs1,
+    input wire [ DATA_WIDTH-1:0] rs2,
+    input wire [ DATA_WIDTH-1:0] pc,
+    input wire [ DATA_WIDTH-1:0] csr,
+    input wire [ DATA_WIDTH-1:0] imm,
+    input wire [SHAMT_WIDTH-1:0] zimm,
 
-    input [31:0] rs1,
-    input [31:0] rs2,
-    input [31:0] pc,
-    input [31:0] csr,
-    input [31:0] imm,
-    input [ 4:0] zimm,
-
-    output reg [31:0] rslt
+    output reg [DATA_WIDTH-1:0] rslt
 );
-    logic [31:0] a;
-    logic [31:0] b;
-    logic [ 4:0] shamt;
+    logic [ DATA_WIDTH-1:0] a;
+    logic [ DATA_WIDTH-1:0] b;
+    logic [SHAMT_WIDTH-1:0] shamt;
 
-    assign shamt = inst.SLL | inst.SRL | inst.SRA | inst.SLLI | inst.SRLI | inst.SRAI ? b[4:0] : 0;
+    assign shamt = inst.SLL | inst.SRL | inst.SRA | inst.SLLI | inst.SRLI | inst.SRAI ?
+        b[SHAMT_WIDTH-1:0] : 0;
 
     always_comb begin
         if (inst.AUIPC | inst.JAL | inst.JALR) begin
@@ -58,21 +63,21 @@ module rip_alu (
     logic alu_ge;
     logic alu_ltu;
     logic alu_geu;
-    logic [31:0] alu_add_sub;
-    logic [31:0] alu_sll;
-    logic [31:0] alu_xor;
-    logic [31:0] alu_srl;
-    logic [31:0] alu_sra;
-    logic [31:0] alu_or;
-    logic [31:0] alu_and;
-    logic [31:0] alu_clear;
-    logic [63:0] alu_mul_ss;
-    logic [63:0] alu_mul_su;
-    logic [63:0] alu_mul_uu;
-    logic [31:0] alu_div_s;
-    logic [31:0] alu_div_u;
-    logic [31:0] alu_rem_s;
-    logic [31:0] alu_rem_u;
+    logic [DATA_WIDTH-1:0] alu_add_sub;
+    logic [DATA_WIDTH-1:0] alu_sll;
+    logic [DATA_WIDTH-1:0] alu_xor;
+    logic [DATA_WIDTH-1:0] alu_srl;
+    logic [DATA_WIDTH-1:0] alu_sra;
+    logic [DATA_WIDTH-1:0] alu_or;
+    logic [DATA_WIDTH-1:0] alu_and;
+    logic [DATA_WIDTH-1:0] alu_clear;
+    logic [2*DATA_WIDTH-1:0] alu_mul_ss;
+    logic [2*DATA_WIDTH-1:0] alu_mul_su;
+    logic [2*DATA_WIDTH-1:0] alu_mul_uu;
+    logic [DATA_WIDTH-1:0] alu_div_s;
+    logic [DATA_WIDTH-1:0] alu_div_u;
+    logic [DATA_WIDTH-1:0] alu_rem_s;
+    logic [DATA_WIDTH-1:0] alu_rem_u;
 
     always_comb begin
         alu_eq      = a == b;
@@ -124,7 +129,7 @@ module rip_alu (
         if (!rst_n) begin
             rslt <= 0;
         end
-        else begin
+        else if (ex_ready) begin
             if (inst.BEQ) begin
                 rslt <= {31'b0, alu_eq};
             end
@@ -146,9 +151,8 @@ module rip_alu (
             else if (inst.LUI) begin
                 rslt <= imm;
             end
-            else if (inst.AUIPC | inst.JAL | inst.JALR | inst.LB | inst.LH | inst.LW |
-                     inst.LBU | inst.LHU | inst.SB | inst.SH | inst.SW | inst.ADDI | inst.ADD |
-                     inst.SUB) begin
+            else if (inst.AUIPC | inst.JAL | inst.JALR | inst.LB | inst.LH | inst.LW | inst.LBU |
+                     inst.LHU | inst.SB | inst.SH | inst.SW | inst.ADDI | inst.ADD | inst.SUB) begin
                 rslt <= alu_add_sub;
             end
             else if (inst.SLL | inst.SLLI) begin
@@ -176,7 +180,7 @@ module rip_alu (
                 rslt <= alu_clear;
             end
             else if (inst.MUL) begin
-                rslt <= alu_mul_uu[31:0];
+                rslt <= alu_mul_uu[DATA_WIDTH-1:0];
             end
             else if (inst.MULH) begin
                 rslt <= alu_mul_ss[63:32];
@@ -204,4 +208,4 @@ module rip_alu (
             end
         end
     end
-endmodule: rip_alu
+endmodule : rip_alu
