@@ -16,6 +16,7 @@ void ValuForTest::exec(const inst_bit_t &_inst_bit, const int &_rs1,
                        const int &_imm, const unsigned char &_zimm) {
   rst_n = 1;
   clk = 0;
+  ex_ready = 1;
 
   std::memcpy(&inst, &_inst_bit, sizeof(inst_bit_t));
 
@@ -60,7 +61,7 @@ protected:
 };
 
 namespace {
-const unsigned N = 10;
+const int N = 10;
 TEST_F(TestAlu, Lui) {
   inst_bit_t inst_bit = {0};
   inst_bit.LUI = 1;
