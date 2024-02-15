@@ -12,6 +12,10 @@ package rip_config;
     localparam bit [11:0] MEPC = 12'h341;
     localparam bit [11:0] MCAUSE = 12'h342;
     localparam bit [11:0] CYCLE = 12'hC00;
+    localparam bit [11:0] BPTP = 12'hFC0;
+    localparam bit [11:0] BPTN = 12'hFC1;
+    localparam bit [11:0] BPFP = 12'hFC2;
+    localparam bit [11:0] BPFN = 12'hFC3;
 
     localparam int CAUSE_ILLEGAL_INST = 2;
     localparam int CAUSE_ECALL = 11;

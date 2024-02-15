@@ -525,6 +525,21 @@ module rip_core
                 csr.cycle = csr.cycle + 32'h1;
             end
 
+            if (ex_state.READY && de_b_type) begin
+                if (branch_correct && de_pred) begin
+                    csr.bptp = csr.bptp + 32'h1;
+                end
+                else if (branch_correct && !de_pred) begin
+                    csr.bptn = csr.bptn + 32'h1;
+                end
+                else if (!branch_correct && de_pred) begin
+                    csr.bpfp = csr.bpfp + 32'h1;
+                end
+                else begin
+                    csr.bpfn = csr.bpfn + 32'h1;
+                end
+            end
+
             if (ma_csr_wen) begin
                 rip_csr::write_csr(csr, ma_csr_num, ma_alu_rslt);
             end

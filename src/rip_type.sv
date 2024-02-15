@@ -93,6 +93,13 @@ package rip_type;
         logic [31:0] mepc;
         logic [31:0] mcause;
         logic [31:0] cycle;
+
+        // custom read only registers
+        // Branch Prediction -- [True, False] [Positive, Negative]
+        logic [31:0] bptp;
+        logic [31:0] bptn;
+        logic [31:0] bpfp;
+        logic [31:0] bpfn;
     } csr_t;
     
     typedef enum logic [1:0] {
