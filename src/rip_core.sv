@@ -5,6 +5,7 @@ module rip_core
     import rip_type::*;
     import rip_const::*;
     import rip_config::*;
+    import rip_branch_predictor_const::*;
 #(
     parameter int REG_ADDR_WIDTH = 5,
     parameter int CSR_ADDR_WIDTH = 12,
