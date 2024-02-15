@@ -84,6 +84,8 @@ verilate(test_all
     ../src/rip_const.sv
     ../src/rip_config.sv
     ../src/rip_type.sv
+    ../src/rip_2r1w_bram.sv
+    ../src/rip_branch_predictor.sv
     ../src/rip_alu.sv
     ../src/rip_regfile.sv
     ../src/rip_csr.sv

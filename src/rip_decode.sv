@@ -16,6 +16,10 @@ module rip_decode
     // instruction code
     input wire [31:0] inst_code,
 
+    // for branch prediction
+    output logic if_b_type,
+    output logic [31:0] if_imm,
+
     // register number
     output wire  [REG_ADDR_WIDTH-1:0] if_rs1_num,
     output wire  [REG_ADDR_WIDTH-1:0] if_rs2_num,
@@ -35,6 +39,8 @@ module rip_decode
     // instructions and pipeline control
     output inst_t inst
 );
+    // for branch prediction
+    assign if_b_type = b_type;
 
     // instruction type and immediate
     wire r_type, i_type, s_type, b_type, u_type, j_type;
@@ -58,46 +64,49 @@ module rip_decode
             imm <= 32'h0;
         end
         else if (de_ready) begin
-            if (i_type) begin
-                if (funct3 == 3'b101 && inst_code[4:2] == 3'b100) begin
-                    imm <= {27'b0, inst_code[24:20]};
-                end
-                else begin
-                    imm <= {{20{inst_code[31]}}, inst_code[31:20]};
-                end
-            end
-            else if (s_type) begin
-                imm <= {{20{inst_code[31]}}, inst_code[31:25], inst_code[11:7]};
-            end
-            else if (b_type) begin
-                imm <= {
-                    {19{inst_code[31]}},
-                    inst_code[31],
-                    inst_code[7],
-                    inst_code[30:25],
-                    inst_code[11:8],
-                    1'b0
-                };
-            end
-            else if (u_type) begin
-                imm <= {inst_code[31:12], 12'b0};
-            end
-            else if (j_type) begin
-                imm <= {
-                    {11{inst_code[31]}},
-                    inst_code[31],
-                    inst_code[19:12],
-                    inst_code[20],
-                    inst_code[30:21],
-                    1'b0
-                };
-            end
-            else begin
-                imm <= 32'h0;
-            end
+            imm <= if_imm;
         end
         else if (!ex_stall) begin
             imm <= 32'h0;
+        end
+    end
+    always_comb begin
+        if (i_type) begin
+            if (funct3 == 3'b101 && inst_code[4:2] == 3'b100) begin
+                if_imm = {27'b0, inst_code[24:20]};
+            end
+            else begin
+                if_imm = {{20{inst_code[31]}}, inst_code[31:20]};
+            end
+        end
+        else if (s_type) begin
+            if_imm = {{20{inst_code[31]}}, inst_code[31:25], inst_code[11:7]};
+        end
+        else if (b_type) begin
+            if_imm = {
+                {19{inst_code[31]}},
+                inst_code[31],
+                inst_code[7],
+                inst_code[30:25],
+                inst_code[11:8],
+                1'b0
+            };
+        end
+        else if (u_type) begin
+            if_imm = {inst_code[31:12], 12'b0};
+        end
+        else if (j_type) begin
+            if_imm = {
+                {11{inst_code[31]}},
+                inst_code[31],
+                inst_code[19:12],
+                inst_code[20],
+                inst_code[30:21],
+                1'b0
+            };
+        end
+        else begin
+            if_imm = 32'h0;
         end
     end
 

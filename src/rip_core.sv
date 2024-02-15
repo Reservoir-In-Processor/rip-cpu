@@ -83,7 +83,15 @@ module rip_core
     logic [DATA_WIDTH-1:0] pc_next_buf;
     logic pc_next_buf_valid;
 
+    logic pc_pred_taken;
+    logic [DATA_WIDTH-1:0] pc_if_taken;
+    logic [DATA_WIDTH-1:0] pc_with_pred;
+
     always_comb begin
+        pc_pred_taken = de_state.READY & if_b_type & if_pred;
+        pc_if_taken = if_pc + if_imm;
+        pc_with_pred = pc_pred_taken ? pc_if_taken : pc;
+
         if (pc_state_reg.INVALID) begin
             pc_state = 3'b100;
         end
@@ -114,7 +122,7 @@ module rip_core
             end
         end
         else begin
-            pc_next = pc + 32'h4;
+            pc_next = pc_with_pred + 32'h4;
         end
     end
 
@@ -163,6 +171,12 @@ module rip_core
 
     wire [DATA_WIDTH-1:0] if_dout;
 
+    wire if_b_type;
+    wire [DATA_WIDTH-1:0] if_imm;
+    logic [DATA_WIDTH-1:0] if_pred_index;
+    rip_bpw_t if_pred_weight;
+    logic if_pred;
+
     // assign if_inst_code = (de_state.READY & !ex_state.STALL) ? if_dout : 32'h0;
     assign if_inst_code = if_dout;
 
@@ -195,7 +209,10 @@ module rip_core
             end
 
             if (if_state.READY) begin
-                if_pc <= pc;
+                if_pc <= pc_with_pred;
+                if_pred_index <= pred_index;
+                if_pred_weight <= pred_weight;
+                if_pred <= pred;
             end
             else if (!de_state.STALL) begin
                 if_pc <= 32'h0;
@@ -225,6 +242,12 @@ module rip_core
     logic [DATA_WIDTH-1:0] de_csr_reg;
     logic [DATA_WIDTH-1:0] de_csr;
 
+    logic de_b_type;
+    logic [DATA_WIDTH-1:0] de_pred_index;
+    rip_bpw_t de_pred_weight;
+    logic de_pred;
+    logic branch_result;
+
     rip_decode decode (
         .rst_n(rst_n),
         .clk(clk),
@@ -232,6 +255,9 @@ module rip_core
         .ex_stall(de_state.STALL),
 
         .inst_code(if_inst_code),
+
+        .if_b_type(if_b_type),
+        .if_imm(if_imm),
 
         .if_rs1_num(if_rs1_num),
         .if_rs2_num(if_rs2_num),
@@ -331,12 +357,44 @@ module rip_core
 
             if (de_state.READY) begin
                 de_pc <= if_pc;
+                de_b_type <= if_b_type;
+                de_pred_index <= if_pred_index;
+                de_pred_weight <= if_pred_weight;
+                de_pred <= if_pred;
             end
             else if (!ex_state.STALL) begin
                 de_pc <= 32'h0;
             end
         end
     end
+
+    wire [DATA_WIDTH-1:0] pred_index;
+    rip_bpw_t pred_weight;
+    wire pred;
+    logic update;
+    logic [DATA_WIDTH-1:0] update_index;
+    rip_bpw_t update_weight;
+    logic actual;
+
+    logic branch_correct;
+
+    assign update = ex_state.READY & de_b_type;
+    assign update_index = de_pred_index;
+    assign update_weight = de_pred_weight;
+    assign actual = branch_result;
+    assign branch_correct = de_b_type & (actual == de_pred);
+    rip_branch_predictor branch_predictor (
+        .clk(clk),
+        .rstn(rst_n),
+        .pc(pc),
+        .pred_index(pred_index),
+        .pred_weight(pred_weight),
+        .pred(pred),
+        .update(update),
+        .update_index(update_index),
+        .update_weight(update_weight),
+        .actual(actual)
+    );
 
     /* -------------------------------- *
      * Stage 3: EX (execution)          *
@@ -374,13 +432,14 @@ module rip_core
         .imm (de_imm),
         .zimm(de_csr_zimm),
 
+        .branch_result(branch_result),
         .rslt(ex_alu_rslt)
     );
 
     assign ex_stall_by_load = ex_state.READY &
         (de_inst.LB | de_inst.LH | de_inst.LW | de_inst.LBU | de_inst.LHU) & de_state.READY &
         (de_rd_num == if_rs1_num | de_rd_num == if_rs2_num);
-    assign ex_flush_by_jmp = ex_state.READY & de_inst.UPDATE_PC;
+    assign ex_flush_by_jmp = ex_state.READY & (de_inst.UPDATE_PC & !branch_correct);
 
     always_comb begin
         if (ex_state_reg.INVALID) begin
@@ -588,7 +647,7 @@ module rip_core
         .dout_2(dout_2),
 
         .if_ready(if_state.READY),
-        .pc(pc),
+        .pc(pc_with_pred),
         .if_dout(if_dout),
 
         .ma_ready(ma_state.READY),
