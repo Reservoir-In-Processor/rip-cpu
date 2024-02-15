@@ -27,18 +27,18 @@ module rip_2r1w_bram
   (* ram_style = "block" *)
   logic [DATA_WIDTH-1:0] ram [(2 ** ADDR_WIDTH)-1:0];
 
-  always_ff @(posedge clk) begin
-    if (enable_1) begin
-      generate
-        for (genvar i = 0; i < DATA_WIDTH/B_WIDTH; i++) begin
+  generate
+    for (genvar i = 0; i < DATA_WIDTH/B_WIDTH; i++) begin
+      always_ff @(posedge clk) begin
+        if (enable_1) begin
           if (we_1[i]) begin
             ram[addr_1][i*B_WIDTH +: B_WIDTH] <= din_1[i*B_WIDTH +: B_WIDTH];
           end
+          dout_1[i*B_WIDTH +: B_WIDTH] <= ram[addr_1][i*B_WIDTH +: B_WIDTH];
         end
-      endgenerate
-      dout_1 <= ram[addr_1];
+      end
     end
-  end
+  endgenerate
 
   always_ff @(posedge clk) begin
     if (enable_2) begin
