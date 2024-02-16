@@ -7,7 +7,9 @@
 // - define 'GSHARE' to use as Gshare predictor
 //
 
-module rip_branch_predictor #(
+module rip_branch_predictor
+    import rip_branch_predictor_const::*;
+#(
     // Pattern History Table
     parameter PHT_LSB = 0,
     parameter PHT_MSB = 31
@@ -15,8 +17,12 @@ module rip_branch_predictor #(
     input wire clk,
     input wire rstn,
     input wire [31:0] pc,
+    output logic [PHT_MSB-PHT_LSB:0] pred_index,
+    output rip_bpw_t pred_weight,
     output logic pred,
     input wire update, // deasserted when stall
+    input wire [PHT_MSB-PHT_LSB:0] update_index,
+    input wire rip_bpw_t update_weight,
     input wire actual
 );
 
@@ -24,31 +30,19 @@ module rip_branch_predictor #(
     localparam PH_WIDTH = 2; // two bit saturating counter
     localparam GLOBAL_HISTORY_DEPTH = PHT_DEPTH;
 
-    logic [PHT_DEPTH-1:0] previous_index;
+    /* predict */
     logic [PHT_DEPTH-1:0] current_index;
     logic [PHT_DEPTH-1:0] global_histroy;
     assign current_index = pc[PHT_MSB:PHT_LSB] ^ global_histroy;
 
-    typedef enum logic [PH_WIDTH-1:0] {
-        STRONGLY_UNTAKEN = 'b00,
-        WEAKLY_UNTAKEN   = 'b01,
-        WEAKLY_TAKEN     = 'b10,
-        STRONGLY_TAKEN   = 'b11,
-        NONE = 'x
-    } two_bit_saturating_counter_t;
-
-    two_bit_saturating_counter_t pred_counter_value;
-    assign pred = pred_counter_value >= WEAKLY_TAKEN;
-
-    two_bit_saturating_counter_t previous_counter_value;
-    two_bit_saturating_counter_t update_counter_value;
+    assign pred = pred_weight >= WEAKLY_TAKEN;
 
     always_ff @(posedge clk) begin
         if (~rstn) begin
+            pred_index <= '0;
             global_histroy <= '0;
-            previous_index <= '0;
-            previous_counter_value <= NONE;
         end else begin
+            pred_index <= current_index;
             if (update) begin
                 `ifdef GSHARE
                     if (PHT_DEPTH == 1) begin
@@ -56,20 +50,19 @@ module rip_branch_predictor #(
                     end else begin
                         global_histroy <= {global_histroy[PHT_DEPTH-2:0], actual};
                     end
-                `endif GSHARE
-                previous_index <= current_index;
-                previous_counter_value <= pred_counter_value;
+                `endif // GSHARE
             end else begin
                 global_histroy <= global_histroy;
-                previous_index <= previous_index;
-                previous_counter_value <= previous_counter_value;
             end
         end
     end
 
+    /* update */
+    rip_bpw_t update_counter_value;
+
     always_comb begin
         if (update) begin
-            case (previous_counter_value)
+            case (update_weight)
                 STRONGLY_UNTAKEN:
                     update_counter_value = actual ? WEAKLY_UNTAKEN : STRONGLY_UNTAKEN;
                 WEAKLY_UNTAKEN:
@@ -86,6 +79,7 @@ module rip_branch_predictor #(
         end
     end
 
+    /* table */
     rip_2r1w_bram #(
         .DATA_WIDTH(PH_WIDTH),
         .ADDR_WIDTH(PHT_DEPTH)
@@ -93,12 +87,12 @@ module rip_branch_predictor #(
         .clk(clk),
         .enable_1(rstn),
         .enable_2(rstn),
-        .addr_1(previous_index),
+        .addr_1(update_index),
         .addr_2(current_index),
         .we_1(update),
         .din_1(update_counter_value),
         // .dout_1(),
-        .dout_2(pred_counter_value)
+        .dout_2(pred_weight)
     );
 
 endmodule
