@@ -28,7 +28,7 @@ module rip_branch_predictor
 
     localparam PHT_DEPTH = PHT_MSB - PHT_LSB + 1;
     localparam PH_WIDTH = 2; // two bit saturating counter
-    localparam GLOBAL_HISTORY_DEPTH = PHT_DEPTH;
+    // localparam GLOBAL_HISTORY_DEPTH = PHT_DEPTH;
 
     /* predict */
     logic [PHT_DEPTH-1:0] current_index;
@@ -61,22 +61,18 @@ module rip_branch_predictor
     rip_bpw_t update_counter_value;
 
     always_comb begin
-        if (update) begin
-            case (update_weight)
-                STRONGLY_UNTAKEN:
-                    update_counter_value = actual ? WEAKLY_UNTAKEN : STRONGLY_UNTAKEN;
-                WEAKLY_UNTAKEN:
-                    update_counter_value = actual ? WEAKLY_TAKEN   : STRONGLY_UNTAKEN;
-                WEAKLY_TAKEN:
-                    update_counter_value = actual ? STRONGLY_TAKEN : WEAKLY_UNTAKEN;
-                STRONGLY_TAKEN:
-                    update_counter_value = actual ? STRONGLY_TAKEN : WEAKLY_TAKEN;
-                default:
-                    update_counter_value = NONE;
-            endcase
-        end else begin
-            update_counter_value = update_counter_value;
-        end
+        case (update_weight)
+            STRONGLY_UNTAKEN:
+                update_counter_value = actual ? WEAKLY_UNTAKEN : STRONGLY_UNTAKEN;
+            WEAKLY_UNTAKEN:
+                update_counter_value = actual ? WEAKLY_TAKEN   : STRONGLY_UNTAKEN;
+            WEAKLY_TAKEN:
+                update_counter_value = actual ? STRONGLY_TAKEN : WEAKLY_UNTAKEN;
+            STRONGLY_TAKEN:
+                update_counter_value = actual ? STRONGLY_TAKEN : WEAKLY_TAKEN;
+            default:
+                update_counter_value = NONE;
+        endcase
     end
 
     /* table */
