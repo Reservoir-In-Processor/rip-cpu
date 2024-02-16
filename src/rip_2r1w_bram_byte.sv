@@ -5,9 +5,10 @@
 // memory module implementation for FPGA Block RAM primitive
 //
 
-// Module: rip_2r1w_bram
-// Description: 2-read 1-write bram
-module rip_2r1w_bram
+// Module: rip_2r1w_bram_byte
+// Description: 2-read 1-write bram with byte-wise write
+// Note: only supports byte aligned data width
+module rip_2r1w_bram_byte
     import rip_const::*;
 #(
   parameter DATA_WIDTH = 32, // bram data width
