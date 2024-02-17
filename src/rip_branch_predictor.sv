@@ -33,6 +33,15 @@ module rip_branch_predictor
     assign pred_weight = bp_weight_t'(current_weight);
     assign pred = pred_weight >= WEAKLY_TAKEN;
 
+    logic [HISTORY_LEN-1:0] new_global_history;
+    generate
+        if (HISTORY_LEN == 1) begin
+            assign new_global_history = actual;
+        end else begin
+            assign new_global_history = {global_histroy[HISTORY_LEN-2:0], actual};
+        end
+    endgenerate
+
     always_ff @(posedge clk) begin
         if (~rstn) begin
             pred_index <= '0;
@@ -40,15 +49,9 @@ module rip_branch_predictor
         end else begin
             pred_index <= current_index;
             if (update) begin
-                generate
-                    `ifndef BIMODAL
-                        if (HISTORY_LEN == 1) begin
-                            global_histroy <= actual;
-                        end else begin
-                            global_histroy <= {global_histroy[HISTORY_LEN-2:0], actual};
-                        end
-                    `endif
-                endgenerate
+                `ifndef BIMODAL
+                    global_histroy <= new_global_history;
+                `endif
             end else begin
                 global_histroy <= global_histroy;
             end
