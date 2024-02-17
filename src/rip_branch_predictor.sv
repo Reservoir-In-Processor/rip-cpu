@@ -8,33 +8,29 @@
 //
 
 module rip_branch_predictor
+    import rip_config::*;
     import rip_branch_predictor_const::*;
 #(
-    // Pattern History Table
-    parameter PHT_LSB = 0,
-    parameter PHT_MSB = 31
 ) (
     input wire clk,
     input wire rstn,
     input wire [31:0] pc,
-    output logic [PHT_MSB-PHT_LSB:0] pred_index,
-    output rip_bpw_t pred_weight,
+    output bp_index_t pred_index,
+    output bp_weight_t pred_weight,
     output logic pred,
     input wire update, // deasserted when stall
-    input wire [PHT_MSB-PHT_LSB:0] update_index,
-    input wire rip_bpw_t update_weight,
+    input wire bp_index_t update_index,
+    input wire bp_weight_t update_weight,
     input wire actual
 );
 
-    localparam PHT_DEPTH = PHT_MSB - PHT_LSB + 1;
-    localparam PH_WIDTH = 2; // two bit saturating counter
-    // localparam GLOBAL_HISTORY_DEPTH = PHT_DEPTH;
-
     /* predict */
-    logic [PHT_DEPTH-1:0] current_index;
-    logic [PHT_DEPTH-1:0] global_histroy;
-    assign current_index = pc[PHT_MSB:PHT_LSB] ^ global_histroy;
+    logic [HISTORY_LEN-1:0] global_histroy;
+    logic [TABLE_DEPTH-1:0] current_index;
+    logic [TABLE_WIDTH-1:0] current_weight;
 
+    assign current_index = pc[BP_PC_MSB:BP_PC_LSB] ^ global_histroy;
+    assign pred_weight = bp_weight_t'(current_weight);
     assign pred = pred_weight >= WEAKLY_TAKEN;
 
     always_ff @(posedge clk) begin
@@ -44,13 +40,13 @@ module rip_branch_predictor
         end else begin
             pred_index <= current_index;
             if (update) begin
-                `ifdef GSHARE
-                    if (PHT_DEPTH == 1) begin
+                `ifndef BIMODAL
+                    if (HISTORY_LEN == 1) begin
                         global_histroy <= actual;
                     end else begin
-                        global_histroy <= {global_histroy[PHT_DEPTH-2:0], actual};
+                        global_histroy <= {global_histroy[HISTORY_LEN-2:0], actual};
                     end
-                `endif // GSHARE
+                `endif
             end else begin
                 global_histroy <= global_histroy;
             end
@@ -58,37 +54,39 @@ module rip_branch_predictor
     end
 
     /* update */
-    rip_bpw_t update_counter_value;
+    logic update_we;
+    logic [TABLE_WIDTH-1:0] updated_weight_value;
 
+    assign update_we = update;
     always_comb begin
         case (update_weight)
             STRONGLY_UNTAKEN:
-                update_counter_value = actual ? WEAKLY_UNTAKEN : STRONGLY_UNTAKEN;
+                updated_weight_value = actual ? WEAKLY_UNTAKEN : STRONGLY_UNTAKEN;
             WEAKLY_UNTAKEN:
-                update_counter_value = actual ? WEAKLY_TAKEN   : STRONGLY_UNTAKEN;
+                updated_weight_value = actual ? WEAKLY_TAKEN   : STRONGLY_UNTAKEN;
             WEAKLY_TAKEN:
-                update_counter_value = actual ? STRONGLY_TAKEN : WEAKLY_UNTAKEN;
+                updated_weight_value = actual ? STRONGLY_TAKEN : WEAKLY_UNTAKEN;
             STRONGLY_TAKEN:
-                update_counter_value = actual ? STRONGLY_TAKEN : WEAKLY_TAKEN;
+                updated_weight_value = actual ? STRONGLY_TAKEN : WEAKLY_TAKEN;
             default:
-                update_counter_value = NONE;
+                updated_weight_value = NONE;
         endcase
     end
 
     /* table */
     rip_2r1w_bram #(
-        .DATA_WIDTH(PH_WIDTH),
-        .ADDR_WIDTH(PHT_DEPTH)
-    ) PHT (
+        .DATA_WIDTH(TABLE_WIDTH),
+        .ADDR_WIDTH(TABLE_DEPTH)
+    ) bp_table (
         .clk(clk),
         .enable_1(rstn),
         .enable_2(rstn),
         .addr_1(update_index),
         .addr_2(current_index),
-        .we_1(update),
-        .din_1(update_counter_value),
+        .we_1(update_we),
+        .din_1(updated_weight_value),
         // .dout_1(),
-        .dout_2(pred_weight)
+        .dout_2(current_weight)
     );
 
 endmodule

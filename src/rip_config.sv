@@ -20,6 +20,21 @@ package rip_config;
     localparam int CAUSE_ILLEGAL_INST = 2;
     localparam int CAUSE_ECALL = 11;
 
+    /*
+    branch predictor configurations
+    */
+
+    /* define one of below models */
+    `define BIMODAL
+    // `define GSHARE
+
+    /// which part of PC to use for the table index
+    localparam int BP_PC_LSB = 3;
+    localparam int BP_PC_MSB = 12;
+
+    /// ignored for BIMODAL and GSHARE
+    localparam int BP_HISTORY_LEN = 10;
+
 endpackage : rip_config
 
 `endif  // RIP_CONFIG
