@@ -40,13 +40,15 @@ module rip_branch_predictor
         end else begin
             pred_index <= current_index;
             if (update) begin
-                `ifndef BIMODAL
-                    if (HISTORY_LEN == 1) begin
-                        global_histroy <= actual;
-                    end else begin
-                        global_histroy <= {global_histroy[HISTORY_LEN-2:0], actual};
-                    end
-                `endif
+                generate
+                    `ifndef BIMODAL
+                        if (HISTORY_LEN == 1) begin
+                            global_histroy <= actual;
+                        end else begin
+                            global_histroy <= {global_histroy[HISTORY_LEN-2:0], actual};
+                        end
+                    `endif
+                endgenerate
             end else begin
                 global_histroy <= global_histroy;
             end
@@ -74,6 +76,7 @@ module rip_branch_predictor
     end
 
     /* table */
+    logic [TABLE_WIDTH-1:0] dout_1_dummy;
     rip_2r1w_bram #(
         .DATA_WIDTH(TABLE_WIDTH),
         .ADDR_WIDTH(TABLE_DEPTH)
@@ -85,7 +88,7 @@ module rip_branch_predictor
         .addr_2(current_index),
         .we_1(update_we),
         .din_1(updated_weight_value),
-        // .dout_1(),
+        .dout_1(dout_1_dummy), // ignored
         .dout_2(current_weight)
     );
 
