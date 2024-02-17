@@ -21,9 +21,9 @@ module rip_fifo_async #(
     output logic r_empty
 );
 
-    localparam DEPTH = 2 ** ADDR_WIDTH;
+    localparam int DEPTH = 2 ** ADDR_WIDTH;
 
-    logic [DATA_WIDTH-1:0] afifo [DEPTH-1:0];
+    logic [DATA_WIDTH-1:0] afifo [DEPTH];
 
     typedef logic [ADDR_WIDTH:0] addr_t; // +1 MSB for overflow checking
 
@@ -67,7 +67,7 @@ module rip_fifo_async #(
 
     // restore binary from gray code
     generate
-        for (genvar i = 0; i <= ADDR_WIDTH; i = i + 1) begin : GEN_RESTORE
+        for (genvar i = 0; i <= ADDR_WIDTH; i = i + 1) begin : gen_restore
             assign w_addr_restored[i] = ^w_addr_gray_r_2[ADDR_WIDTH:i];
             assign r_addr_restored[i] = ^r_addr_gray_w_2[ADDR_WIDTH:i];
         end

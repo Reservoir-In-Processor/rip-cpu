@@ -4,16 +4,16 @@
 // Module: rip_pseudo_core_mmu
 // Description: pseudo core with MMU for testing on a board.
 module rip_pseudo_core_mmu #(
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32, // data port width
-    parameter AXI_ID_WIDTH = 4,
-    parameter AXI_DATA_WIDTH = 32
+    parameter int ADDR_WIDTH = 32,
+    parameter int DATA_WIDTH = 32, // data port width
+    parameter int AXI_ID_WIDTH = 4,
+    parameter int AXI_DATA_WIDTH = 32
 ) (
     input wire clk,
     input wire rstn,
     input wire [ADDR_WIDTH-1:0] mem_head,
     output wire [1:0] busy,
-    rip_axi_interface.master M_AXI
+    rip_axi_interface_if.master M_AXI
 );
     import rip_const::*;
 
@@ -38,14 +38,15 @@ module rip_pseudo_core_mmu #(
         .*
     );
 
-    enum logic [5:0] {
+    typedef enum logic [5:0] {
         SLEEP,
         INIT,
         READ,
         READWAIT,
         WRITE,
         WRITEWAIT
-    } state;
+    } state_e;
+    state_e state;
 
     assign busy = state == SLEEP ? 'b00 :
                     state == READ  || state == READWAIT  ? 'b10 :
@@ -58,7 +59,7 @@ module rip_pseudo_core_mmu #(
     logic [AXI_DATA_WIDTH-1:0] data;
     assign addr = mem_offset | (cnt << 2);
     assign data = dout_1;
-    localparam data_len = 256;
+    localparam int DATA_LEN = 256;
 
     always_ff @(posedge clk) begin
         if (~rstn) begin
@@ -114,7 +115,7 @@ module rip_pseudo_core_mmu #(
                 end
                 WRITEWAIT: begin
                     if (~busy_1) begin
-                        if (cnt < data_len) begin
+                        if (cnt < DATA_LEN) begin
                             state <= READ;
                             addr_1 <= addr;
                             re_1 <= '1;
@@ -123,6 +124,7 @@ module rip_pseudo_core_mmu #(
                         end
                     end
                 end
+                default: state <= SLEEP;
             endcase
         end
     end

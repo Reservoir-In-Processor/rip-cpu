@@ -10,8 +10,8 @@
 // Note: only supports line-wise data write (with any data width)
 module rip_2r1w_bram
 #(
-  parameter DATA_WIDTH = 32, // bram data width
-  parameter ADDR_WIDTH = 10  // bram data depth
+  parameter int DATA_WIDTH = 32, // bram data width
+  parameter int ADDR_WIDTH = 10  // bram data depth
 ) (
   input wire clk,
   input wire enable_1,
@@ -25,7 +25,7 @@ module rip_2r1w_bram
 );
 
   (* ram_style = "block" *)
-  logic [DATA_WIDTH-1:0] ram [(2 ** ADDR_WIDTH)-1:0];
+  logic [DATA_WIDTH-1:0] ram [2 ** ADDR_WIDTH];
 
   always_ff @(posedge clk) begin
     if (enable_1) begin

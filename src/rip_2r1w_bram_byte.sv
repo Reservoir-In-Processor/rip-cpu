@@ -11,8 +11,8 @@
 module rip_2r1w_bram_byte
     import rip_const::*;
 #(
-  parameter DATA_WIDTH = 32, // bram data width
-  parameter ADDR_WIDTH = 10  // bram data depth
+  parameter int DATA_WIDTH = 32, // bram data width
+  parameter int ADDR_WIDTH = 10  // bram data depth
 ) (
   input wire clk,
   input wire enable_1,
@@ -26,10 +26,10 @@ module rip_2r1w_bram_byte
 );
 
   (* ram_style = "block" *)
-  logic [DATA_WIDTH-1:0] ram [(2 ** ADDR_WIDTH)-1:0];
+  logic [DATA_WIDTH-1:0] ram [2 ** ADDR_WIDTH];
 
   generate
-    for (genvar i = 0; i < DATA_WIDTH/B_WIDTH; i++) begin
+    for (genvar i = 0; i < DATA_WIDTH/B_WIDTH; i++) begin : gen_byte_write
       always_ff @(posedge clk) begin
         if (enable_1) begin
           if (we_1[i]) begin

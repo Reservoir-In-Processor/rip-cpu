@@ -19,4 +19,4 @@ package rip_axi_interface_const;
 
 endpackage
 
-`endif
+`endif  // RIP_AXI_INTERFACE_CONST

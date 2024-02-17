@@ -30,4 +30,4 @@ package rip_branch_predictor_const;
 
 endpackage
 
-`endif
+`endif  // RIP_BRANCH_PREDICTOR_CONST

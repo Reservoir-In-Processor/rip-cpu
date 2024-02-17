@@ -35,9 +35,9 @@ module rip_branch_predictor
 
     logic [HISTORY_LEN-1:0] new_global_history;
     generate
-        if (HISTORY_LEN == 1) begin
+        if (HISTORY_LEN == 1) begin : gen_global_history
             assign new_global_history = actual;
-        end else begin
+        end else begin : gen_global_history
             assign new_global_history = {global_histroy[HISTORY_LEN-2:0], actual};
         end
     endgenerate
@@ -51,7 +51,7 @@ module rip_branch_predictor
             if (update) begin
                 `ifndef BIMODAL
                     global_histroy <= new_global_history;
-                `endif
+                `endif  // BIMODAL
             end else begin
                 global_histroy <= global_histroy;
             end

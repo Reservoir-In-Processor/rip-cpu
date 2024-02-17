@@ -64,7 +64,7 @@ module rip_core_wrapper #(
     output wire RREADY
 );
 
-    rip_axi_interface #(
+    rip_axi_interface_if #(
         .ID_WIDTH(AXI_ID_WIDTH),
         .ADDR_WIDTH(AXI_ADDR_WIDTH),
         .DATA_WIDTH(AXI_DATA_WIDTH)

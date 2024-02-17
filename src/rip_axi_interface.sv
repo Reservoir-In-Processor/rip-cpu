@@ -1,7 +1,7 @@
-interface rip_axi_interface #(
-    parameter ID_WIDTH = 4,
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32
+interface rip_axi_interface_if #(
+    parameter int ID_WIDTH = 4,
+    parameter int ADDR_WIDTH = 32,
+    parameter int DATA_WIDTH = 32
 );
     // Write address channel signals
     logic [ID_WIDTH-1:0] AWID;
@@ -51,7 +51,8 @@ interface rip_axi_interface #(
 
     modport master (
         // Write address channel signals
-        output AWID, AWADDR, AWLEN, AWSIZE, AWBURST, AWLOCK, AWCACHE, AWPROT, AWQOS, AWREGION, AWVALID,
+        output AWID, AWADDR, AWLEN, AWSIZE, AWBURST, AWLOCK, AWCACHE, AWPROT, AWQOS, AWREGION,
+               AWVALID,
         input AWREADY,
         // Write data channel signals
         output WID, WDATA, WSTRB, WLAST, WVALID,
@@ -60,7 +61,8 @@ interface rip_axi_interface #(
         input BID, BRESP, BVALID,
         output BREADY,
         // Read address channel signals
-        output ARID, ARADDR, ARLEN, ARSIZE, ARBURST, ARLOCK, ARCACHE, ARPROT, ARQOS, ARREGION, ARVALID,
+        output ARID, ARADDR, ARLEN, ARSIZE, ARBURST, ARLOCK, ARCACHE, ARPROT, ARQOS, ARREGION,
+               ARVALID,
         input ARREADY,
         // Read data channel signals
         input RID, RDATA, RRESP, RLAST, RVALID,
@@ -69,7 +71,8 @@ interface rip_axi_interface #(
 
     modport slave (
         // Write address channel signals
-        input AWID, AWADDR, AWLEN, AWSIZE, AWBURST, AWLOCK, AWCACHE, AWPROT, AWQOS, AWREGION, AWVALID,
+        input AWID, AWADDR, AWLEN, AWSIZE, AWBURST, AWLOCK, AWCACHE, AWPROT, AWQOS, AWREGION,
+              AWVALID,
         output AWREADY,
         // Write data channel signals
         input WID, WDATA, WSTRB, WLAST, WVALID,
@@ -78,7 +81,8 @@ interface rip_axi_interface #(
         output BID, BRESP, BVALID,
         input BREADY,
         // Read address channel signals
-        input ARID, ARADDR, ARLEN, ARSIZE, ARBURST, ARLOCK, ARCACHE, ARPROT, ARQOS, ARREGION, ARVALID,
+        input ARID, ARADDR, ARLEN, ARSIZE, ARBURST, ARLOCK, ARCACHE, ARPROT, ARQOS, ARREGION,
+              ARVALID,
         output ARREADY,
         // Read data channel signals
         output RID, RDATA, RRESP, RLAST, RVALID,

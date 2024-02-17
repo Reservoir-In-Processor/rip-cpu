@@ -1,17 +1,17 @@
 `timescale 1ns / 1ps
 
 module rip_memory_management_unit_tb #(
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32, // data port width
+    parameter int ADDR_WIDTH = 32,
+    parameter int DATA_WIDTH = 32, // data port width
     // cache configuration
     // `TAG_WIDTH + INDEX_WIDTH + log(LINE_SIZE) == ADDR_WIDTH`
-    parameter TAG_WIDTH = 15,
-    parameter INDEX_WIDTH = 15,
-    parameter LINE_SIZE = 4, // bytes per cache line (>= 4)
-    parameter WAY_NUM = 1,
+    parameter int TAG_WIDTH = 15,
+    parameter int INDEX_WIDTH = 15,
+    parameter int LINE_SIZE = 4, // bytes per cache line (>= 4)
+    parameter int WAY_NUM = 1,
     // AXI configuration
-    parameter AXI_ID_WIDTH = 4,
-    parameter AXI_DATA_WIDTH = 32
+    parameter int AXI_ID_WIDTH = 4,
+    parameter int AXI_DATA_WIDTH = 32
 ) (
 );
     import rip_const::*;
@@ -20,8 +20,8 @@ module rip_memory_management_unit_tb #(
     import axi_vip_0_pkg::*; // component name retrived from IP configuration window
 
     logic SYS_CLK = '0;
-    localparam sys_clk_period = 10;
-    initial forever #(sys_clk_period/2) SYS_CLK = ~SYS_CLK;
+    localparam int SYS_CLK_PERIOD = 10;
+    initial forever #(SYS_CLK_PERIOD/2) SYS_CLK = ~SYS_CLK;
 
     logic SYS_RSTN = '0;
 
@@ -44,7 +44,7 @@ module rip_memory_management_unit_tb #(
         din_1 <= '0;
     endtask // reset_logics
 
-    rip_axi_interface #(
+    rip_axi_interface_if #(
         .ID_WIDTH(AXI_ID_WIDTH),
         .ADDR_WIDTH(ADDR_WIDTH),
         .DATA_WIDTH(DATA_WIDTH)

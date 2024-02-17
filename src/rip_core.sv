@@ -27,10 +27,10 @@ module rip_core
 `ifdef VERILATOR
     output wire [DATA_WIDTH-1:0] riscv_tests_passed
 `else
-    rip_axi_interface.master M_AXI
+    rip_axi_interface_if.master M_AXI
 `endif  // VERILATOR
 );
-    localparam NUM_COL = DATA_WIDTH / B_WIDTH; // number of columns in memory
+    localparam int NUM_COL = DATA_WIDTH / B_WIDTH; // number of columns in memory
 
     csr_t csr;
     core_mode_t mode;

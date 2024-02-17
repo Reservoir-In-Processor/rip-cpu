@@ -6,17 +6,17 @@
 module rip_memory_management_unit
     import rip_const::*;
 #(
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32, // data port width
+    parameter int ADDR_WIDTH = 32,
+    parameter int DATA_WIDTH = 32, // data port width
     // cache configuration
     // `TAG_WIDTH + INDEX_WIDTH + log(LINE_SIZE) == ADDR_WIDTH`
-    parameter TAG_WIDTH = 15,
-    parameter INDEX_WIDTH = 15,
-    parameter LINE_SIZE = 4, // bytes per cache line (>= 4)
-    parameter WAY_NUM = 1,
+    parameter int TAG_WIDTH = 15,
+    parameter int INDEX_WIDTH = 15,
+    parameter int LINE_SIZE = 4, // bytes per cache line (>= 4)
+    parameter int WAY_NUM = 1,
     // AXI configuration
-    parameter AXI_ID_WIDTH = 4,
-    parameter AXI_DATA_WIDTH = 32
+    parameter int AXI_ID_WIDTH = 4,
+    parameter int AXI_DATA_WIDTH = 32
 ) (
     input wire clk,
     input wire rstn,
@@ -30,7 +30,7 @@ module rip_memory_management_unit
     output logic [DATA_WIDTH-1:0] dout_2,
     output logic busy_1,
     output logic busy_2,
-    rip_axi_interface.master M_AXI
+    rip_axi_interface_if.master M_AXI
 );
     import rip_axi_interface_const::*;
 
@@ -47,7 +47,7 @@ module rip_memory_management_unit
     logic [LINE_SIZE*B_WIDTH-1:0] rdata;
     logic rdone;
 
-    localparam BURST_LEN = LINE_SIZE / (AXI_DATA_WIDTH / B_WIDTH);
+    localparam int BURST_LEN = LINE_SIZE / (AXI_DATA_WIDTH / B_WIDTH);
     rip_axi_master #(
         .ID_WIDTH(AXI_ID_WIDTH),
         .ADDR_WIDTH(ADDR_WIDTH),

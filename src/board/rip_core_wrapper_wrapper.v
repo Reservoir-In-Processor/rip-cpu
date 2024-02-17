@@ -1,12 +1,12 @@
 // Module: rip_core_wrapper_wrapper
 // Description: Verilog HDL wrapper for rip_core_wrapper
 module rip_core_wrapper_wrapper #(
-    parameter REG_ADDR_WIDTH = 5,
-    parameter CSR_ADDR_WIDTH = 12,
-    parameter DATA_WIDTH = 32,
-    parameter AXI_ID_WIDTH = 4,
-    parameter AXI_ADDR_WIDTH = 32,
-    parameter AXI_DATA_WIDTH = 32
+    parameter int REG_ADDR_WIDTH = 5,
+    parameter int CSR_ADDR_WIDTH = 12,
+    parameter int DATA_WIDTH = 32,
+    parameter int AXI_ID_WIDTH = 4,
+    parameter int AXI_ADDR_WIDTH = 32,
+    parameter int AXI_DATA_WIDTH = 32
 ) (
     input wire sys_rst_n,
     input wire clk,
