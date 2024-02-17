@@ -174,8 +174,8 @@ module rip_core
 
     wire if_b_type;
     wire [DATA_WIDTH-1:0] if_imm;
-    logic [DATA_WIDTH-1:0] if_pred_index;
-    rip_bpw_t if_pred_weight;
+    bp_index_t if_pred_index;
+    bp_weight_t if_pred_weight;
     logic if_pred;
 
     // assign if_inst_code = (de_state.READY & !ex_state.STALL) ? if_dout : 32'h0;
@@ -244,8 +244,8 @@ module rip_core
     logic [DATA_WIDTH-1:0] de_csr;
 
     logic de_b_type;
-    logic [DATA_WIDTH-1:0] de_pred_index;
-    rip_bpw_t de_pred_weight;
+    bp_index_t de_pred_index;
+    bp_weight_t de_pred_weight;
     logic de_pred;
     logic branch_result;
 
@@ -369,12 +369,12 @@ module rip_core
         end
     end
 
-    wire [DATA_WIDTH-1:0] pred_index;
-    rip_bpw_t pred_weight;
+    bp_index_t pred_index;
+    bp_weight_t pred_weight;
     wire pred;
     logic update;
-    logic [DATA_WIDTH-1:0] update_index;
-    rip_bpw_t update_weight;
+    bp_index_t update_index;
+    bp_weight_t update_weight;
     logic actual;
 
     logic branch_correct;
