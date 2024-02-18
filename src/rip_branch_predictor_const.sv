@@ -17,16 +17,37 @@ package rip_branch_predictor_const;
     localparam int TABLE_DEPTH = BP_PC_MSB - BP_PC_LSB + 1;
     typedef logic [TABLE_DEPTH-1 : 0] bp_index_t;
 
-    localparam int HISTORY_LEN = TABLE_DEPTH;
+    `ifdef PERCEPTRON
+        localparam int HISTORY_LEN = BP_HISTORY_LEN;
 
-    localparam int TABLE_WIDTH = 2; // 2-bit saturating counter
-    typedef enum logic [1:0] {
-        STRONGLY_UNTAKEN = 'b00,
-        WEAKLY_UNTAKEN   = 'b01,
-        WEAKLY_TAKEN     = 'b10,
-        STRONGLY_TAKEN   = 'b11,
-        NONE = 'x
-    } bp_weight_t;
+        /*
+        * THETA: threashold
+        * WEIGHT_WIDTH: width of each weight
+        * WEIGHT_NUM: the number of weights (+1 for bias)
+        */
+        localparam int THETA = $floor(1.93 * real'(HISTORY_LEN) + 14);
+        localparam int WEIGHT_WIDTH = $clog2(THETA+1) + 1;
+        localparam int WEIGHT_NUM = HISTORY_LEN + 1;
+
+        localparam int TABLE_WIDTH = WEIGHT_WIDTH * WEIGHT_NUM;
+        typedef struct packed {
+            logic [HISTORY_LEN-1:0] history;
+            // logic [TABLE_WIDTH-1:0] weights;
+            logic [WEIGHT_NUM-1:0][WEIGHT_WIDTH-1:0] weights;
+            logic [WEIGHT_WIDTH-1:0] y;
+        } bp_weight_t;
+    `else /* BIMODAL || GSHARE */
+        localparam int HISTORY_LEN = TABLE_DEPTH;
+
+        localparam int TABLE_WIDTH = 2; // 2-bit saturating counter
+        typedef enum logic [1:0] {
+            STRONGLY_UNTAKEN = 'b00,
+            WEAKLY_UNTAKEN   = 'b01,
+            WEAKLY_TAKEN     = 'b10,
+            STRONGLY_TAKEN   = 'b11,
+            NONE = 'x
+        } bp_weight_t;
+    `endif
 
 endpackage
 

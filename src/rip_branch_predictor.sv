@@ -29,9 +29,28 @@ module rip_branch_predictor
     logic [TABLE_DEPTH-1:0] current_index;
     logic [TABLE_WIDTH-1:0] current_weight;
 
-    assign current_index = pc[BP_PC_MSB:BP_PC_LSB] ^ global_histroy;
-    assign pred_weight = bp_weight_t'(current_weight);
-    assign pred = pred_weight >= WEAKLY_TAKEN;
+    `ifdef PERCEPTRON
+        assign current_index = pc[BP_PC_MSB:BP_PC_LSB];
+        logic [WEIGHT_WIDTH-1:0] pred_y;
+        always_comb begin
+            pred_y = current_weight[TABLE_WIDTH-1 -: WEIGHT_WIDTH];
+            for (int i = 0; i < HISTORY_LEN; i++) begin
+                if (global_histroy[i]) begin
+                    pred_y += current_weight[WEIGHT_WIDTH*i +: WEIGHT_WIDTH];
+                end else begin
+                    pred_y -= current_weight[WEIGHT_WIDTH*i +: WEIGHT_WIDTH];
+                end
+            end
+        end
+        assign pred_weight.history = global_histroy;
+        assign pred_weight.weights = current_weight;
+        assign pred_weight.y = pred_y;
+        assign pred = ~ pred_y[WEIGHT_WIDTH-1]; // sign (>= 0 ?)
+    `else /* BIMODAL || GSHARE */
+        assign current_index = pc[BP_PC_MSB:BP_PC_LSB] ^ global_histroy;
+        assign pred_weight = bp_weight_t'(current_weight);
+        assign pred = pred_weight >= WEAKLY_TAKEN;
+    `endif
 
     logic [HISTORY_LEN-1:0] new_global_history;
     generate
@@ -62,21 +81,39 @@ module rip_branch_predictor
     logic update_we;
     logic [TABLE_WIDTH-1:0] updated_weight_value;
 
-    assign update_we = update;
-    always_comb begin
-        case (update_weight)
-            STRONGLY_UNTAKEN:
-                updated_weight_value = actual ? WEAKLY_UNTAKEN : STRONGLY_UNTAKEN;
-            WEAKLY_UNTAKEN:
-                updated_weight_value = actual ? WEAKLY_TAKEN   : STRONGLY_UNTAKEN;
-            WEAKLY_TAKEN:
-                updated_weight_value = actual ? STRONGLY_TAKEN : WEAKLY_UNTAKEN;
-            STRONGLY_TAKEN:
-                updated_weight_value = actual ? STRONGLY_TAKEN : WEAKLY_TAKEN;
-            default:
-                updated_weight_value = NONE;
-        endcase
-    end
+    `ifdef PERCEPTRON
+        logic update_pred;
+        logic [WEIGHT_WIDTH-1:0] update_y_abs;
+        assign update_pred = ~ update_weight.y[WEIGHT_WIDTH-1]; // sign (>= 0 ?)
+        assign update_y_abs = update_pred ? update_weight.y : (~update_weight.y + 1'b1);
+
+        assign update_we = (update_pred ^ actual) || (update_y_abs <= THETA);
+        assign updated_weight_value[TABLE_WIDTH-1 -: WEIGHT_WIDTH] =
+                update_weight.weights[WEIGHT_NUM-1] + (actual ? 1 : -1);
+        generate
+            for (genvar i = 0; i < HISTORY_LEN; i++) begin
+                assign updated_weight_value[WEIGHT_WIDTH*i +: WEIGHT_WIDTH] =
+                        update_weight.weights[i]
+                        + ((actual ^ update_weight.history[i]) ? 1 : -1);
+            end
+        endgenerate
+    `else /* BIMODAL || GSHARE */
+        assign update_we = update;
+        always_comb begin
+            case (update_weight)
+                STRONGLY_UNTAKEN:
+                    updated_weight_value = actual ? WEAKLY_UNTAKEN : STRONGLY_UNTAKEN;
+                WEAKLY_UNTAKEN:
+                    updated_weight_value = actual ? WEAKLY_TAKEN   : STRONGLY_UNTAKEN;
+                WEAKLY_TAKEN:
+                    updated_weight_value = actual ? STRONGLY_TAKEN : WEAKLY_UNTAKEN;
+                STRONGLY_TAKEN:
+                    updated_weight_value = actual ? STRONGLY_TAKEN : WEAKLY_TAKEN;
+                default:
+                    updated_weight_value = NONE;
+            endcase
+        end
+    `endif
 
     /* table */
     logic [TABLE_WIDTH-1:0] dout_1_dummy;
