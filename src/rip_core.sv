@@ -901,8 +901,11 @@ module rip_core
                 file_handle, "x24( s8 ):= %X, x25( s9 ):= %X, x26( s10):= %X, x27( s11):= %X, ",
                 regfile.regfile[24], regfile.regfile[25], regfile.regfile[26], regfile.regfile[27]);
             $fdisplay(
-                file_handle, "x28( t3 ):= %X, x29( t4 ):= %X, x30( t5 ):= %X, x31( t6 ):= %X, \n",
+                file_handle, "x28( t3 ):= %X, x29( t4 ):= %X, x30( t5 ):= %X, x31( t6 ):= %X, ",
                 regfile.regfile[28], regfile.regfile[29], regfile.regfile[30], regfile.regfile[31]);
+            $fdisplay(
+                file_handle, "cycle: %0d, bptp: %0d, bptn: %0d, bpfp: %0d, bpfn: %0d \n",
+                csr.cycle, csr.bptp, csr.bptn, csr.bpfp, csr.bpfn);
 
             // $fdisplay(file_handle, "  satp  := %X,  mstatus:= %X,  medeleg:= %X,  mideleg:= %X, ",
             //           32'h0, csr.mstatus, 32'h0, 32'h0);
