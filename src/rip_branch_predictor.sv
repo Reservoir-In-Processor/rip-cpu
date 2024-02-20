@@ -87,7 +87,7 @@ module rip_branch_predictor
         assign update_pred = ~ update_weight.y[WEIGHT_WIDTH-1]; // sign (>= 0 ?)
         assign update_y_abs = update_pred ? update_weight.y : (~update_weight.y + 1'b1);
 
-        assign update_we = (update_pred ^ actual) || (update_y_abs <= THETA);
+        assign update_we = (update_pred ^ actual) || (update_y_abs <= WEIGHT_WIDTH'(THETA));
         assign updated_weight_value[TABLE_WIDTH-1 -: WEIGHT_WIDTH] =
                 update_weight.weights[WEIGHT_NUM-1] + (actual ? 1 : -1);
         generate
