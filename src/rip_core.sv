@@ -609,6 +609,10 @@ module rip_core
             csr.mepc    = 32'h0;
             csr.mcause  = 32'h0;
             csr.cycle   = 32'h0;
+            csr.bptp    = 32'h0;
+            csr.bptn    = 32'h0;
+            csr.bpfp    = 32'h0;
+            csr.bpfn    = 32'h0;
         end
         else begin
             if (mode == RUNNING) begin
