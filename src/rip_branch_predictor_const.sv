@@ -26,7 +26,7 @@ package rip_branch_predictor_const;
         * WEIGHT_NUM: the number of weights (+1 for bias)
         */
         localparam int THETA = int'($floor(1.93 * real'(HISTORY_LEN) + 14));
-        localparam int WEIGHT_WIDTH = $clog2(THETA+1) + 1;
+        localparam int WEIGHT_WIDTH = $clog2(THETA+1) + 10;
         localparam int WEIGHT_NUM = HISTORY_LEN + 1;
 
         localparam int TABLE_WIDTH = WEIGHT_WIDTH * WEIGHT_NUM;

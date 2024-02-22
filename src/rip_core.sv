@@ -87,6 +87,7 @@ module rip_core
     logic pc_pred_taken;
     logic [DATA_WIDTH-1:0] pc_if_taken;
     logic [DATA_WIDTH-1:0] pc_with_pred;
+    logic [DATA_WIDTH-1:0] pc_next_for_pred;
 
     always_comb begin
         pc_pred_taken = de_state.READY & if_b_type & if_pred;
@@ -125,6 +126,13 @@ module rip_core
         else begin
             pc_next = pc_with_pred + 32'h4;
         end
+
+        if (pc_state.READY & pc_next_buf_valid) begin
+            pc_next_for_pred = pc_next_buf;
+        end
+        else begin
+            pc_next_for_pred = pc_next;
+        end
     end
 
     always_ff @(posedge clk) begin
@@ -142,18 +150,53 @@ module rip_core
 
             if (pc_state.READY) begin
                 if (pc_next_buf_valid) begin
-                    pc <= pc_next_buf;
                     pc_next_buf_valid <= 1'b0;
                 end
-                else begin
-                    pc <= pc_next;
-                end
+                pc <= pc_next_for_pred;
             end
 
             if (pc_state.STALL & !if_state.STALL & !pc_next_buf_valid) begin
                 pc_next_buf <= pc_next;
                 pc_next_buf_valid <= 1'b1;
             end
+        end
+    end
+
+    // 3 signals below are latched by pc_state.READY delayed by 1 cycle
+    bp_index_t pc_pred_index;
+    bp_weight_t pc_pred_weight;
+    logic pc_pred;
+
+    logic pc_ready_buf;
+    bp_index_t pc_pred_index_buf;
+    bp_weight_t pc_pred_weight_buf;
+    logic pc_pred_buf;
+
+    `ifdef VERILATOR
+        logic [HISTORY_LEN-1:0] pc_global_histroy;
+        logic [HISTORY_LEN-1:0] pc_global_histroy_buf;
+        assign pc_global_histroy = pc_ready_buf ? global_histroy : pc_global_histroy_buf;
+    `endif
+
+    assign pc_pred_index = pc_ready_buf ? pred_index : pc_pred_index_buf;
+    assign pc_pred_weight = pc_ready_buf ? pred_weight : pc_pred_weight_buf;
+    assign pc_pred = pc_ready_buf ? pred : pc_pred_buf;
+
+    always_ff @(posedge clk) begin
+        if (!rst_n) begin
+            pc_ready_buf <= 1'b0;
+        end
+        else begin
+            pc_ready_buf <= pc_state.READY;
+        end
+
+        if (pc_ready_buf) begin
+            pc_pred_index_buf <= pred_index;
+            pc_pred_weight_buf <= pred_weight;
+            pc_pred_buf <= pred;
+            `ifdef VERILATOR
+                pc_global_histroy_buf <= global_histroy;
+            `endif
         end
     end
 
@@ -177,6 +220,11 @@ module rip_core
     bp_index_t if_pred_index;
     bp_weight_t if_pred_weight;
     logic if_pred;
+    logic if_pred_taken;
+
+    `ifdef VERILATOR
+        logic [HISTORY_LEN-1:0] if_global_histroy;
+    `endif
 
     // assign if_inst_code = (de_state.READY & !ex_state.STALL) ? if_dout : 32'h0;
     assign if_inst_code = if_dout;
@@ -211,9 +259,13 @@ module rip_core
 
             if (if_state.READY) begin
                 if_pc <= pc_with_pred;
-                if_pred_index <= pred_index;
-                if_pred_weight <= pred_weight;
-                if_pred <= pred;
+                if_pred_index <= pc_pred_index;
+                if_pred_weight <= pc_pred_weight;
+                if_pred <= pc_pred;
+                if_pred_taken <= pc_pred_taken;
+                `ifdef VERILATOR
+                    if_global_histroy <= pc_global_histroy;
+                `endif
             end
             else if (!de_state.STALL) begin
                 if_pc <= 32'h0;
@@ -248,6 +300,11 @@ module rip_core
     bp_weight_t de_pred_weight;
     logic de_pred;
     logic branch_result;
+    logic de_pred_taken;
+
+    `ifdef VERILATOR
+        logic [HISTORY_LEN-1:0] de_global_histroy;
+    `endif
 
     rip_decode decode (
         .rst_n(rst_n),
@@ -362,6 +419,11 @@ module rip_core
                 de_pred_index <= if_pred_index;
                 de_pred_weight <= if_pred_weight;
                 de_pred <= if_pred;
+                de_pred_taken <= if_pred_taken;
+
+                `ifdef VERILATOR
+                    de_global_histroy <= if_global_histroy;
+                `endif
             end
             else if (!ex_state.STALL) begin
                 de_pc <= 32'h0;
@@ -379,7 +441,9 @@ module rip_core
 
     logic branch_correct;
 
-    assign update = ex_state.READY & de_b_type;
+    logic [HISTORY_LEN-1:0] global_histroy;
+
+    assign update = ex_state.READY & de_b_type & !de_pred_taken;
     assign update_index = de_pred_index;
     assign update_weight = de_pred_weight;
     assign actual = branch_result;
@@ -387,7 +451,7 @@ module rip_core
     rip_branch_predictor branch_predictor (
         .clk(clk),
         .rstn(rst_n),
-        .pc(pc),
+        .pc(pc_next_for_pred),
         .pred_index(pred_index),
         .pred_weight(pred_weight),
         .pred(pred),
@@ -395,7 +459,33 @@ module rip_core
         .update_index(update_index),
         .update_weight(update_weight),
         .actual(actual)
+        `ifdef VERILATOR
+        , .global_histroy_dbg(global_histroy)
+        `endif
     );
+
+    `ifdef VERILATOR
+        logic using_same_pc;
+        `ifdef PERCEPTRON
+            assign using_same_pc = de_pc[BP_PC_MSB:BP_PC_LSB] == update_index;
+        `else
+            assign using_same_pc = (de_global_histroy ^ de_pc[BP_PC_MSB:BP_PC_LSB]) == update_index;
+        `endif
+
+        // always_ff @(posedge clk) begin
+        //     if (update) begin
+        //         $display("t: %0d", t);
+        //         $display("depc: %0h", de_pc);
+        //         $display("history: %10b", global_histroy);
+        //         $display("history_prev: %10b", de_global_histroy);
+        //         $display("using_same_pc: %0b", using_same_pc);
+        //         $display("update_index: %10b", update_index);
+        //         $display("update_weight: %0d", update_weight);
+        //         $display("pred: %0b", de_pred);
+        //         $display("actual: %0b", actual);
+        //     end
+        // end
+    `endif
 
     /* -------------------------------- *
      * Stage 3: EX (execution)          *
@@ -525,7 +615,7 @@ module rip_core
                 csr.cycle = csr.cycle + 32'h1;
             end
 
-            if (ex_state.READY && de_b_type) begin
+            if (ex_state.READY && update) begin
                 if (branch_correct && de_pred) begin
                     csr.bptp = csr.bptp + 32'h1;
                 end
@@ -697,6 +787,22 @@ module rip_core
         .busy_1(busy_1),
         .busy_2(busy_2)
     );
+
+    // reproduce printf function: store to 10000000
+    logic [7:0] chars [4];
+    generate
+        for (genvar i = 0; i < 4; i++) begin
+            assign chars[i] = din_1[8*i+:8];
+        end
+    endgenerate
+
+    always_ff @(posedge clk) begin
+        if (ma_state.READY && ex_inst.SW && addr_1 == 32'h10000000) begin
+            // $display("t: %0d", t);
+            // $display("printf: %08h %c%c%c%c", din_1, chars[3], chars[2], chars[1], chars[0]);
+            $write("%c", chars[0]);
+        end
+    end
 `else
     rip_memory_management_unit #(
         .ADDR_WIDTH(AXI_ADDR_WIDTH),

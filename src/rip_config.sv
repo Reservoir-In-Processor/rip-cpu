@@ -25,13 +25,13 @@ package rip_config;
     */
 
     /* define one of below models */
-    `define BIMODAL
+    // `define BIMODAL
     // `define GSHARE
-    // `define PERCEPTRON
+    `define PERCEPTRON
 
     /// which part of PC to use for the table index
-    localparam int BP_PC_LSB = 3;
-    localparam int BP_PC_MSB = 12;
+    localparam int BP_PC_LSB = 2;
+    localparam int BP_PC_MSB = 11;
 
     /// ignored for BIMODAL and GSHARE
     localparam int BP_HISTORY_LEN = 10;
