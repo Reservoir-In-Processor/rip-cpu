@@ -75,7 +75,9 @@ module rip_branch_predictor
             global_histroy <= '0;
         end else begin
             pred_index <= current_index;
-            global_histroy_dbg <= global_histroy;
+            `ifdef VERILATOR
+                global_histroy_dbg <= global_histroy;
+            `endif
             if (update) begin
                 `ifndef BIMODAL
                     global_histroy <= new_global_history;
