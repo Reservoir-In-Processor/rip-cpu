@@ -94,7 +94,7 @@ module rip_branch_predictor
             for (genvar i = 0; i < HISTORY_LEN; i++) begin
                 assign updated_weight_value[WEIGHT_WIDTH*i +: WEIGHT_WIDTH] =
                         update_weight.weights[i]
-                        + ((actual ^ update_weight.history[i]) ? 1 : -1);
+                        + ((actual ^ update_weight.history[i]) ? -1 : 1);
             end
         endgenerate
     `else /* BIMODAL || GSHARE */
