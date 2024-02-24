@@ -30,17 +30,18 @@ package rip_branch_predictor_const;
         localparam int WEIGHT_NUM = HISTORY_LEN + 1;
 
         localparam int TABLE_WIDTH = WEIGHT_WIDTH * WEIGHT_NUM;
+        typedef logic [WEIGHT_NUM-1:0][WEIGHT_WIDTH-1:0] weight_t;
         typedef struct packed {
             logic [HISTORY_LEN-1:0] history;
-            // logic [TABLE_WIDTH-1:0] weights;
-            logic [WEIGHT_NUM-1:0][WEIGHT_WIDTH-1:0] weights;
+            weight_t weights;
             logic [WEIGHT_WIDTH-1:0] y;
         } bp_weight_t;
     `else /* BIMODAL || GSHARE */
         localparam int HISTORY_LEN = TABLE_DEPTH;
 
         localparam int TABLE_WIDTH = 2; // 2-bit saturating counter
-        typedef enum logic [1:0] {
+        typedef logic [TABLE_WIDTH-1:0] weight_t;
+        typedef enum logic [TABLE_WIDTH-1:0] {
             STRONGLY_UNTAKEN = 'b00,
             WEAKLY_UNTAKEN   = 'b01,
             WEAKLY_TAKEN     = 'b10,

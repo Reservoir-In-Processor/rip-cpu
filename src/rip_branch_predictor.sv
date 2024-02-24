@@ -27,18 +27,18 @@ module rip_branch_predictor
     /* predict */
     logic [HISTORY_LEN-1:0] global_histroy;
     logic [TABLE_DEPTH-1:0] current_index;
-    logic [TABLE_WIDTH-1:0] current_weight;
+    weight_t current_weight;
 
     `ifdef PERCEPTRON
         assign current_index = pc[BP_PC_MSB:BP_PC_LSB];
         logic [WEIGHT_WIDTH-1:0] pred_y;
         always_comb begin
-            pred_y = current_weight[TABLE_WIDTH-1 -: WEIGHT_WIDTH];
-            for (int i = 0; i < HISTORY_LEN; i++) begin
+            pred_y = current_weight[WEIGHT_NUM-1];
+            for (int i = 0; i < WEIGHT_NUM - 1; i++) begin
                 if (global_histroy[i]) begin
-                    pred_y += current_weight[WEIGHT_WIDTH*i +: WEIGHT_WIDTH];
+                    pred_y += current_weight[i];
                 end else begin
-                    pred_y -= current_weight[WEIGHT_WIDTH*i +: WEIGHT_WIDTH];
+                    pred_y -= current_weight[i];
                 end
             end
         end
@@ -79,7 +79,7 @@ module rip_branch_predictor
 
     /* update */
     logic update_we;
-    logic [TABLE_WIDTH-1:0] updated_weight_value;
+    weight_t updated_weight_value;
 
     `ifdef PERCEPTRON
         logic update_pred;
@@ -88,11 +88,11 @@ module rip_branch_predictor
         assign update_y_abs = update_pred ? update_weight.y : (~update_weight.y + 1'b1);
 
         assign update_we = (update_pred ^ actual) || (update_y_abs <= WEIGHT_WIDTH'(THETA));
-        assign updated_weight_value[TABLE_WIDTH-1 -: WEIGHT_WIDTH] =
+        assign updated_weight_value[WEIGHT_NUM-1] =
                 update_weight.weights[WEIGHT_NUM-1] + (actual ? 1 : -1);
         generate
-            for (genvar i = 0; i < HISTORY_LEN; i++) begin
-                assign updated_weight_value[WEIGHT_WIDTH*i +: WEIGHT_WIDTH] =
+            for (genvar i = 0; i < WEIGHT_NUM - 1; i++) begin
+                assign updated_weight_value[i] =
                         update_weight.weights[i]
                         + ((actual ^ update_weight.history[i]) ? -1 : 1);
             end
