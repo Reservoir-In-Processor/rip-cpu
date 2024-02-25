@@ -10,8 +10,9 @@ package rip_branch_predictor_const;
     * TABLE_DEPTH: depth of weight table
     * TABLE_WIDTH: width of weight table
 
-    * bp_index_t: branch predictor table index type
-    * bp_weight_t: branch predictor weight (bpw) type
+    * bp_index_t: branch predictor table index public type
+    * bp_weight_t: branch predictor weight public type
+    * weight_t: branch predictor weight private type
     */
 
     localparam int TABLE_DEPTH = BP_PC_MSB - BP_PC_LSB + 1;
