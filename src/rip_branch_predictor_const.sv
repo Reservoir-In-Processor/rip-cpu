@@ -37,6 +37,26 @@ package rip_branch_predictor_const;
             weight_t weights;
             logic [WEIGHT_WIDTH-1:0] y;
         } bp_weight_t;
+    `elsif PERCEPTRON_RO
+        localparam int HISTORY_LEN = BP_HISTORY_LEN;
+
+        /*
+        * THETA: threashold
+        * WEIGHT_WIDTH: width of each weight
+        * WEIGHT_NUM: the number of weights (+1 for bias)
+        */
+        localparam int WEIGHT_NUM = HISTORY_LEN + BP_RO_NUM + 1;
+        localparam int THETA = $floor(1.93 * real'(WEIGHT_NUM - 1) + 14);
+        localparam int WEIGHT_WIDTH = $clog2(THETA+1) + 1;
+
+        localparam int TABLE_WIDTH = WEIGHT_WIDTH * WEIGHT_NUM;
+        typedef logic [WEIGHT_NUM-1:0][WEIGHT_WIDTH-1:0] weight_t;
+        typedef struct packed {
+            logic [HISTORY_LEN-1:0] history;
+            logic [BP_RO_NUM-1:0] ro_sdelta; // second delta (delta of delta)
+            weight_t weights;
+            logic [WEIGHT_WIDTH-1:0] y;
+        } bp_weight_t;
     `else /* BIMODAL || GSHARE */
         localparam int HISTORY_LEN = TABLE_DEPTH;
 

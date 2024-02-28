@@ -28,6 +28,7 @@ package rip_config;
     `define BIMODAL
     // `define GSHARE
     // `define PERCEPTRON
+    // `define PERCEPTRON_RO
 
     /// which part of PC to use for the table index
     localparam int BP_PC_LSB = 3;
@@ -35,6 +36,9 @@ package rip_config;
 
     /// ignored for BIMODAL and GSHARE
     localparam int BP_HISTORY_LEN = 10;
+
+    /// PERCEPTRON_RO ring oscillator configurations
+    localparam int BP_RO_NUM = 1;
 
 endpackage : rip_config
 

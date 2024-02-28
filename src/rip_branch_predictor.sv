@@ -46,6 +46,30 @@ module rip_branch_predictor
         assign pred_weight.weights = current_weight;
         assign pred_weight.y = pred_y;
         assign pred = ~ pred_y[WEIGHT_WIDTH-1]; // sign (>= 0 ?)
+    `elsif PERCEPTRON_RO
+        assign current_index = pc[BP_PC_MSB:BP_PC_LSB];
+
+        logic [BP_RO_NUM-1:0] ro_sdelta; // second delta (delta of delta)
+        logic [WEIGHT_NUM - 1: 0] bp_x;
+        assign bp_x = {global_histroy, ro_sdelta};
+
+        logic [WEIGHT_WIDTH-1:0] pred_y;
+        always_comb begin
+            pred_y = current_weight[WEIGHT_NUM-1];
+            for (int i = 0; i < WEIGHT_NUM - 1; i++) begin
+                if (bp_x[i]) begin
+                    pred_y += current_weight[i];
+                end else begin
+                    pred_y -= current_weight[i];
+                end
+            end
+        end
+
+        assign pred_weight.history = global_histroy;
+        assign pred_weight.ro_sdelta = ro_sdelta;
+        assign pred_weight.weights = current_weight;
+        assign pred_weight.y = pred_y;
+        assign pred = ~ pred_y[WEIGHT_WIDTH-1]; // sign (>= 0 ?)
     `else /* BIMODAL || GSHARE */
         assign current_index = pc[BP_PC_MSB:BP_PC_LSB] ^ global_histroy;
         assign pred_weight = bp_weight_t'(current_weight);
@@ -97,6 +121,24 @@ module rip_branch_predictor
                         + ((actual ^ update_weight.history[i]) ? -1 : 1);
             end
         endgenerate
+    `elsif PERCEPTRON_RO
+        logic update_pred;
+        logic [WEIGHT_WIDTH-1:0] update_y_abs;
+        assign update_pred = ~ update_weight.y[WEIGHT_WIDTH-1]; // sign (>= 0 ?)
+        assign update_y_abs = update_pred ? update_weight.y : (~update_weight.y + 1'b1);
+
+        assign update_we = (update_pred ^ actual) || (update_y_abs <= WEIGHT_WIDTH'(THETA));
+        assign updated_weight_value[WEIGHT_NUM-1] =
+                update_weight.weights[WEIGHT_NUM-1] + (actual ? 1 : -1);
+        logic [WEIGHT_NUM - 1 : 0] update_bp_x;
+        assign update_bp_x = {update_weight.history, update_weight.ro_sdelta};
+        generate
+            for (genvar i = 0; i < WEIGHT_NUM - 1; i++) begin
+                assign updated_weight_value[i] =
+                        update_weight.weights[i]
+                        + ((actual ^ update_bp_x[i]) ? -1 : 1);
+            end
+        endgenerate
     `else /* BIMODAL || GSHARE */
         assign update_we = update;
         always_comb begin
@@ -131,6 +173,20 @@ module rip_branch_predictor
         .dout_1(dout_1_dummy), // ignored
         .dout_2(current_weight)
     );
+
+    /* ring oscillators for PERCEPTRON_RO */
+    `ifdef PERCEPTRON_RO
+        rip_ring_oscillator_monitor #(
+            .INVERTER_DELAY(1),
+            .RO_SIZE(3),
+            .RO_DATAWIDTH(32),
+            .RO_SAMPLE_CYCLE(100)
+        ) ro_monitor_0 (
+            .clk(clk),
+            .rstn(rstn),
+            .sdelta(ro_sdelta[0])
+        );
+    `endif
 
 endmodule
 
