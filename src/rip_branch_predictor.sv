@@ -53,7 +53,7 @@ module rip_branch_predictor
         assign current_index = pc[BP_PC_MSB:BP_PC_LSB];
 
         logic [BP_RO_NUM-1:0] ro_sdelta; // second delta (delta of delta)
-        logic [WEIGHT_NUM - 1: 0] bp_x;
+        logic [WEIGHT_NUM - 2: 0] bp_x;
         assign bp_x = {global_histroy, ro_sdelta};
 
         logic [WEIGHT_WIDTH-1:0] pred_y;
@@ -136,7 +136,7 @@ module rip_branch_predictor
         assign update_we = (update_pred ^ actual) || (update_y_abs <= WEIGHT_WIDTH'(THETA));
         assign updated_weight_value[WEIGHT_NUM-1] =
                 update_weight.weights[WEIGHT_NUM-1] + (actual ? 1 : -1);
-        logic [WEIGHT_NUM - 1 : 0] update_bp_x;
+        logic [WEIGHT_NUM - 2 : 0] update_bp_x;
         assign update_bp_x = {update_weight.history, update_weight.ro_sdelta};
         generate
             for (genvar i = 0; i < WEIGHT_NUM - 1; i++) begin
