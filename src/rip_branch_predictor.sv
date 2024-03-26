@@ -30,22 +30,18 @@ module rip_branch_predictor
     /* predict */
     logic [HISTORY_LEN-1:0] global_histroy;
     logic [TABLE_DEPTH-1:0] current_index;
-    // logic [TABLE_WIDTH-1:0] current_weight;
+    logic [TABLE_WIDTH-1:0] current_weight;
 
     `ifdef PERCEPTRON
-        logic signed [WEIGHT_NUM-1:0][WEIGHT_WIDTH-1:0] current_weight;
         assign current_index = pc[BP_PC_MSB:BP_PC_LSB];
         logic [WEIGHT_WIDTH-1:0] pred_y;
         always_comb begin
-            // pred_y = current_weight[TABLE_WIDTH-1 -: WEIGHT_WIDTH];
-            pred_y = current_weight[WEIGHT_NUM-1];
+            pred_y = current_weight[TABLE_WIDTH-1 -: WEIGHT_WIDTH];
             for (int i = 0; i < HISTORY_LEN; i++) begin
                 if (global_histroy[i]) begin
-                    // pred_y += current_weight[WEIGHT_WIDTH*i +: WEIGHT_WIDTH];
-                    pred_y += current_weight[i];
+                    pred_y += current_weight[WEIGHT_WIDTH*i +: WEIGHT_WIDTH];
                 end else begin
-                    // pred_y -= current_weight[WEIGHT_WIDTH*i +: WEIGHT_WIDTH];
-                    pred_y -= current_weight[i];
+                    pred_y -= current_weight[WEIGHT_WIDTH*i +: WEIGHT_WIDTH];
                 end
             end
         end
@@ -54,7 +50,6 @@ module rip_branch_predictor
         assign pred_weight.y = pred_y;
         assign pred = ~ pred_y[WEIGHT_WIDTH-1]; // sign (>= 0 ?)
     `else /* BIMODAL || GSHARE */
-        logic [TABLE_WIDTH-1:0] current_weight;
         assign current_index = pc[BP_PC_MSB:BP_PC_LSB] ^ global_histroy;
         assign pred_weight = bp_weight_t'(current_weight);
         assign pred = pred_weight >= WEAKLY_TAKEN;
@@ -75,9 +70,6 @@ module rip_branch_predictor
             global_histroy <= '0;
         end else begin
             pred_index <= current_index;
-            `ifdef VERILATOR
-                global_histroy_dbg <= global_histroy;
-            `endif
             if (update) begin
                 `ifndef BIMODAL
                     global_histroy <= new_global_history;
@@ -85,6 +77,9 @@ module rip_branch_predictor
             end else begin
                 global_histroy <= global_histroy;
             end
+            `ifdef VERILATOR
+                global_histroy_dbg <= global_histroy;
+            `endif
         end
     end
 
@@ -105,11 +100,7 @@ module rip_branch_predictor
             for (genvar i = 0; i < HISTORY_LEN; i++) begin
                 assign updated_weight_value[WEIGHT_WIDTH*i +: WEIGHT_WIDTH] =
                         update_weight.weights[i]
-                        // actual = 1, history = 0 -> -1, 
-                        // actual = 1, history = 1 => 1,
-                        // actual = 0, history = 0 -> 1, 
-                        // actual = 0, history = 1 => -1
-                        + ((actual ^ update_weight.history[i]) ? -1 : 1);
+                        + ((actual ^ update_weight.history[i]) ? 1 : -1);
             end
         endgenerate
     `else /* BIMODAL || GSHARE */
