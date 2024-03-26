@@ -16,6 +16,11 @@ package rip_csr;
                 MTVEC: read_csr = csr.mtvec;
                 MEPC: read_csr = csr.mepc;
                 MCAUSE: read_csr = csr.mcause;
+                CYCLE: read_csr = csr.cycle;
+                BPTP: read_csr = csr.bptp;
+                BPTN: read_csr = csr.bptn;
+                BPFP: read_csr = csr.bpfp;
+                BPFN: read_csr = csr.bpfn;
                 default: read_csr = 32'b0;
             endcase
         end

@@ -5,6 +5,7 @@ module rip_core
     import rip_type::*;
     import rip_const::*;
     import rip_config::*;
+    import rip_branch_predictor_const::*;
 #(
     parameter int REG_ADDR_WIDTH = 5,
     parameter int CSR_ADDR_WIDTH = 12,
@@ -83,7 +84,16 @@ module rip_core
     logic [DATA_WIDTH-1:0] pc_next_buf;
     logic pc_next_buf_valid;
 
+    logic pc_pred_taken;
+    logic [DATA_WIDTH-1:0] pc_if_taken;
+    logic [DATA_WIDTH-1:0] pc_with_pred;
+    logic [DATA_WIDTH-1:0] pc_next_for_pred;
+
     always_comb begin
+        pc_pred_taken = de_state.READY & if_b_type & if_pred;
+        pc_if_taken = if_pc + if_imm;
+        pc_with_pred = pc_pred_taken ? pc_if_taken : pc;
+
         if (pc_state_reg.INVALID) begin
             pc_state = 3'b100;
         end
@@ -114,7 +124,14 @@ module rip_core
             end
         end
         else begin
-            pc_next = pc + 32'h4;
+            pc_next = pc_with_pred + 32'h4;
+        end
+
+        if (pc_state.READY & pc_next_buf_valid) begin
+            pc_next_for_pred = pc_next_buf;
+        end
+        else begin
+            pc_next_for_pred = pc_next;
         end
     end
 
@@ -133,18 +150,53 @@ module rip_core
 
             if (pc_state.READY) begin
                 if (pc_next_buf_valid) begin
-                    pc <= pc_next_buf;
                     pc_next_buf_valid <= 1'b0;
                 end
-                else begin
-                    pc <= pc_next;
-                end
+                pc <= pc_next_for_pred;
             end
 
             if (pc_state.STALL & !if_state.STALL & !pc_next_buf_valid) begin
                 pc_next_buf <= pc_next;
                 pc_next_buf_valid <= 1'b1;
             end
+        end
+    end
+
+    // 3 signals below are latched by pc_state.READY delayed by 1 cycle
+    bp_index_t pc_pred_index;
+    bp_weight_t pc_pred_weight;
+    logic pc_pred;
+
+    logic pc_ready_buf;
+    bp_index_t pc_pred_index_buf;
+    bp_weight_t pc_pred_weight_buf;
+    logic pc_pred_buf;
+
+    `ifdef VERILATOR
+        logic [HISTORY_LEN-1:0] pc_global_histroy;
+        logic [HISTORY_LEN-1:0] pc_global_histroy_buf;
+        assign pc_global_histroy = pc_ready_buf ? global_histroy : pc_global_histroy_buf;
+    `endif
+
+    assign pc_pred_index = pc_ready_buf ? pred_index : pc_pred_index_buf;
+    assign pc_pred_weight = pc_ready_buf ? pred_weight : pc_pred_weight_buf;
+    assign pc_pred = pc_ready_buf ? pred : pc_pred_buf;
+
+    always_ff @(posedge clk) begin
+        if (!rst_n) begin
+            pc_ready_buf <= 1'b0;
+        end
+        else begin
+            pc_ready_buf <= pc_state.READY;
+        end
+
+        if (pc_ready_buf) begin
+            pc_pred_index_buf <= pred_index;
+            pc_pred_weight_buf <= pred_weight;
+            pc_pred_buf <= pred;
+            `ifdef VERILATOR
+                pc_global_histroy_buf <= global_histroy;
+            `endif
         end
     end
 
@@ -162,6 +214,17 @@ module rip_core
     wire [CSR_ADDR_WIDTH-1:0] if_csr_num;
 
     wire [DATA_WIDTH-1:0] if_dout;
+
+    wire if_b_type;
+    wire [DATA_WIDTH-1:0] if_imm;
+    bp_index_t if_pred_index;
+    bp_weight_t if_pred_weight;
+    logic if_pred;
+    logic if_pred_taken;
+
+    `ifdef VERILATOR
+        logic [HISTORY_LEN-1:0] if_global_histroy;
+    `endif
 
     // assign if_inst_code = (de_state.READY & !ex_state.STALL) ? if_dout : 32'h0;
     assign if_inst_code = if_dout;
@@ -195,7 +258,14 @@ module rip_core
             end
 
             if (if_state.READY) begin
-                if_pc <= pc;
+                if_pc <= pc_with_pred;
+                if_pred_index <= pc_pred_index;
+                if_pred_weight <= pc_pred_weight;
+                if_pred <= pc_pred;
+                if_pred_taken <= pc_pred_taken;
+                `ifdef VERILATOR
+                    if_global_histroy <= pc_global_histroy;
+                `endif
             end
             else if (!de_state.STALL) begin
                 if_pc <= 32'h0;
@@ -225,6 +295,17 @@ module rip_core
     logic [DATA_WIDTH-1:0] de_csr_reg;
     logic [DATA_WIDTH-1:0] de_csr;
 
+    logic de_b_type;
+    bp_index_t de_pred_index;
+    bp_weight_t de_pred_weight;
+    logic de_pred;
+    logic branch_result;
+    logic de_pred_taken;
+
+    `ifdef VERILATOR
+        logic [HISTORY_LEN-1:0] de_global_histroy;
+    `endif
+
     rip_decode decode (
         .rst_n(rst_n),
         .clk(clk),
@@ -232,6 +313,9 @@ module rip_core
         .ex_stall(de_state.STALL),
 
         .inst_code(if_inst_code),
+
+        .if_b_type(if_b_type),
+        .if_imm(if_imm),
 
         .if_rs1_num(if_rs1_num),
         .if_rs2_num(if_rs2_num),
@@ -331,12 +415,77 @@ module rip_core
 
             if (de_state.READY) begin
                 de_pc <= if_pc;
+                de_b_type <= if_b_type;
+                de_pred_index <= if_pred_index;
+                de_pred_weight <= if_pred_weight;
+                de_pred <= if_pred;
+                de_pred_taken <= if_pred_taken;
+
+                `ifdef VERILATOR
+                    de_global_histroy <= if_global_histroy;
+                `endif
             end
             else if (!ex_state.STALL) begin
                 de_pc <= 32'h0;
             end
         end
     end
+
+    bp_index_t pred_index;
+    bp_weight_t pred_weight;
+    wire pred;
+    logic update;
+    bp_index_t update_index;
+    bp_weight_t update_weight;
+    logic actual;
+
+    logic branch_correct;
+
+    logic [HISTORY_LEN-1:0] global_histroy;
+
+    assign update = ex_state.READY & de_b_type & !de_pred_taken;
+    assign update_index = de_pred_index;
+    assign update_weight = de_pred_weight;
+    assign actual = branch_result;
+    assign branch_correct = de_b_type & (actual == de_pred);
+    rip_branch_predictor branch_predictor (
+        .clk(clk),
+        .rstn(rst_n),
+        .pc(pc_next_for_pred),
+        .pred_index(pred_index),
+        .pred_weight(pred_weight),
+        .pred(pred),
+        .update(update),
+        .update_index(update_index),
+        .update_weight(update_weight),
+        .actual(actual)
+        `ifdef VERILATOR
+        , .global_histroy_dbg(global_histroy)
+        `endif
+    );
+
+    `ifdef VERILATOR
+        logic using_same_pc;
+        `ifdef PERCEPTRON
+            assign using_same_pc = de_pc[BP_PC_MSB:BP_PC_LSB] == update_index;
+        `else
+            assign using_same_pc = (de_global_histroy ^ de_pc[BP_PC_MSB:BP_PC_LSB]) == update_index;
+        `endif
+
+        // always_ff @(posedge clk) begin
+        //     if (update) begin
+        //         $display("t: %0d", t);
+        //         $display("depc: %0h", de_pc);
+        //         $display("history: %10b", global_histroy);
+        //         $display("history_prev: %10b", de_global_histroy);
+        //         $display("using_same_pc: %0b", using_same_pc);
+        //         $display("update_index: %10b", update_index);
+        //         $display("update_weight: %0d", update_weight);
+        //         $display("pred: %0b", de_pred);
+        //         $display("actual: %0b", actual);
+        //     end
+        // end
+    `endif
 
     /* -------------------------------- *
      * Stage 3: EX (execution)          *
@@ -374,13 +523,14 @@ module rip_core
         .imm (de_imm),
         .zimm(de_csr_zimm),
 
+        .branch_result(branch_result),
         .rslt(ex_alu_rslt)
     );
 
     assign ex_stall_by_load = ex_state.READY &
         (de_inst.LB | de_inst.LH | de_inst.LW | de_inst.LBU | de_inst.LHU) & de_state.READY &
         (de_rd_num == if_rs1_num | de_rd_num == if_rs2_num);
-    assign ex_flush_by_jmp = ex_state.READY & de_inst.UPDATE_PC;
+    assign ex_flush_by_jmp = ex_state.READY & (de_inst.UPDATE_PC & !branch_correct);
 
     always_comb begin
         if (ex_state_reg.INVALID) begin
@@ -458,8 +608,32 @@ module rip_core
             csr.mtvec   = 32'h0;
             csr.mepc    = 32'h0;
             csr.mcause  = 32'h0;
+            csr.cycle   = 32'h0;
+            csr.bptp    = 32'h0;
+            csr.bptn    = 32'h0;
+            csr.bpfp    = 32'h0;
+            csr.bpfn    = 32'h0;
         end
         else begin
+            if (mode == RUNNING) begin
+                csr.cycle = csr.cycle + 32'h1;
+            end
+
+            if (ex_state.READY && update) begin
+                if (branch_correct && de_pred) begin
+                    csr.bptp = csr.bptp + 32'h1;
+                end
+                else if (branch_correct && !de_pred) begin
+                    csr.bptn = csr.bptn + 32'h1;
+                end
+                else if (!branch_correct && de_pred) begin
+                    csr.bpfp = csr.bpfp + 32'h1;
+                end
+                else begin
+                    csr.bpfn = csr.bpfn + 32'h1;
+                end
+            end
+
             if (ma_csr_wen) begin
                 rip_csr::write_csr(csr, ma_csr_num, ma_alu_rslt);
             end
@@ -583,7 +757,7 @@ module rip_core
         .dout_2(dout_2),
 
         .if_ready(if_state.READY),
-        .pc(pc),
+        .pc(pc_with_pred),
         .if_dout(if_dout),
 
         .ma_ready(ma_state.READY),
@@ -617,6 +791,22 @@ module rip_core
         .busy_1(busy_1),
         .busy_2(busy_2)
     );
+
+    // reproduce printf function: store to 10000000
+    logic [7:0] chars [4];
+    generate
+        for (genvar i = 0; i < 4; i++) begin
+            assign chars[i] = din_1[8*i+:8];
+        end
+    endgenerate
+
+    always_ff @(posedge clk) begin
+        if (ma_state.READY && ex_inst.SW && addr_1 == 32'h10000000) begin
+            // $display("t: %0d", t);
+            // $display("printf: %08h %c%c%c%c", din_1, chars[3], chars[2], chars[1], chars[0]);
+            $write("%c", chars[0]);
+        end
+    end
 `else
     rip_memory_management_unit #(
         .ADDR_WIDTH(AXI_ADDR_WIDTH),
@@ -763,7 +953,6 @@ module rip_core
     initial begin
         file_handle = $fopen("dump.txt");
         t           = 0;
-        finished    = 1'b0;
     end
 
     always_ff @(posedge clk) begin
@@ -822,8 +1011,11 @@ module rip_core
                 file_handle, "x24( s8 ):= %X, x25( s9 ):= %X, x26( s10):= %X, x27( s11):= %X, ",
                 regfile.regfile[24], regfile.regfile[25], regfile.regfile[26], regfile.regfile[27]);
             $fdisplay(
-                file_handle, "x28( t3 ):= %X, x29( t4 ):= %X, x30( t5 ):= %X, x31( t6 ):= %X, \n",
+                file_handle, "x28( t3 ):= %X, x29( t4 ):= %X, x30( t5 ):= %X, x31( t6 ):= %X, ",
                 regfile.regfile[28], regfile.regfile[29], regfile.regfile[30], regfile.regfile[31]);
+            $fdisplay(
+                file_handle, "cycle: %0d, bptp: %0d, bptn: %0d, bpfp: %0d, bpfn: %0d \n",
+                csr.cycle, csr.bptp, csr.bptn, csr.bpfp, csr.bpfn);
 
             // $fdisplay(file_handle, "  satp  := %X,  mstatus:= %X,  medeleg:= %X,  mideleg:= %X, ",
             //           32'h0, csr.mstatus, 32'h0, 32'h0);
@@ -835,7 +1027,6 @@ module rip_core
             // finish simulation when invalid instruction is executed
             if (wb_inst.EBREAK) begin
                 $fclose(file_handle);
-                finished <= 1'b1;
             end
         end
     end

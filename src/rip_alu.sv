@@ -20,6 +20,7 @@ module rip_alu
     input wire [ DATA_WIDTH-1:0] imm,
     input wire [SHAMT_WIDTH-1:0] zimm,
 
+    output logic branch_result,
     output reg [DATA_WIDTH-1:0] rslt
 );
     logic [ DATA_WIDTH-1:0] a;
@@ -122,6 +123,30 @@ module rip_alu
         else begin
             alu_div_s = $signed(a) / $signed(b);
             alu_rem_s = $signed(a) % $signed(b);
+        end
+    end
+
+    always_comb begin
+        if (inst.BEQ) begin
+            branch_result = alu_eq;
+        end
+        else if (inst.BNE) begin
+            branch_result = alu_ne;
+        end
+        else if (inst.BLT) begin
+            branch_result = alu_lt;
+        end
+        else if (inst.BGE) begin
+            branch_result = alu_ge;
+        end
+        else if (inst.BLTU) begin
+            branch_result = alu_ltu;
+        end
+        else if (inst.BGEU) begin
+            branch_result = alu_geu;
+        end
+        else begin
+            branch_result = '0;
         end
     end
 

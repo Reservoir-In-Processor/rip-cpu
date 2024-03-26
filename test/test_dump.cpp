@@ -9,11 +9,12 @@
 
 namespace {
 
-constexpr int TIME_MAX = 6000000;
+constexpr int TIME_MAX = 600000000;
 const char* WAVEFORM_FILE = "simx.vcd";
 TEST(TestCore, ExportWaveform) {
     // Instantiate DUT
     std::string testcase_filename = "../../hex/dhry.hex";
+    // std::string testcase_filename = "../../hex/riscv-tests/rv32ui-p-beq.hex";
     std::string tmp_filename = "../../hex/testcase.hex";
     std::filesystem::copy_file(
         testcase_filename, tmp_filename,
