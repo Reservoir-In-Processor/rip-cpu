@@ -22,6 +22,9 @@ module rip_branch_predictor
     input wire bp_index_t update_index,
     input wire bp_weight_t update_weight,
     input wire actual
+    `ifdef VERILATOR
+        , output logic [HISTORY_LEN-1:0] global_histroy_dbg
+    `endif
 );
 
     /* predict */
@@ -98,6 +101,9 @@ module rip_branch_predictor
             end else begin
                 global_histroy <= global_histroy;
             end
+            `ifdef VERILATOR
+                global_histroy_dbg <= global_histroy;
+            `endif
         end
     end
 
