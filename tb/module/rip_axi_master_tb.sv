@@ -1,10 +1,10 @@
 `timescale 1ns / 1ps
 
 module rip_axi_master_tb #(
-    parameter ID_WIDTH = 4,
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32, // Burst size
-    parameter BURST_LEN = 2
+    parameter int ID_WIDTH = 4,
+    parameter int ADDR_WIDTH = 32,
+    parameter int DATA_WIDTH = 32, // Burst size
+    parameter int BURST_LEN = 2
 ) (
 );
     import rip_const::*;

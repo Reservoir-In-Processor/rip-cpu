@@ -6,17 +6,17 @@
 module rip_memory_management_unit
     import rip_const::*;
 #(
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32, // data port width
+    parameter int ADDR_WIDTH = 32,
+    parameter int DATA_WIDTH = 32, // data port width
     // cache configuration
     // `TAG_WIDTH + INDEX_WIDTH + log(LINE_SIZE) == ADDR_WIDTH`
-    parameter TAG_WIDTH = 15,
-    parameter INDEX_WIDTH = 15,
-    parameter LINE_SIZE = 4, // bytes per cache line (>= 4)
-    parameter WAY_NUM = 1,
+    parameter int TAG_WIDTH = 15,
+    parameter int INDEX_WIDTH = 15,
+    parameter int LINE_SIZE = 4, // bytes per cache line (>= 4)
+    parameter int WAY_NUM = 1,
     // AXI configuration
-    parameter AXI_ID_WIDTH = 4,
-    parameter AXI_DATA_WIDTH = 32
+    parameter int AXI_ID_WIDTH = 4,
+    parameter int AXI_DATA_WIDTH = 32
 ) (
     input wire clk,
     input wire rstn,

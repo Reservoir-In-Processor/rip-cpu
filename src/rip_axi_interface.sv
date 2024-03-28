@@ -1,7 +1,7 @@
 interface rip_axi_interface #(
-    parameter ID_WIDTH = 4,
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32
+    parameter int ID_WIDTH = 4,
+    parameter int ADDR_WIDTH = 32,
+    parameter int DATA_WIDTH = 32
 );
     // Write address channel signals
     logic [ID_WIDTH-1:0] AWID;

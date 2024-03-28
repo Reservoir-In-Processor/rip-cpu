@@ -14,10 +14,10 @@
 module rip_axi_master
     import rip_const::*;
 #(
-    parameter ID_WIDTH = 4,
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32, // Burst size
-    parameter BURST_LEN = 1
+    parameter int ID_WIDTH = 4,
+    parameter int ADDR_WIDTH = 32,
+    parameter int DATA_WIDTH = 32, // Burst size
+    parameter int BURST_LEN = 1
 ) (
     input wire clk,
     input wire rstn,

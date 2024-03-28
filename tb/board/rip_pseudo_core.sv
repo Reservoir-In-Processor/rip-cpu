@@ -4,10 +4,10 @@
 // Module: rip_pseudo_core
 // Description: pseudo core for testing on a board.
 module rip_pseudo_core #(
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32, // data port width
-    parameter AXI_ID_WIDTH = 4,
-    parameter AXI_DATA_WIDTH = 32
+    parameter int ADDR_WIDTH = 32,
+    parameter int DATA_WIDTH = 32, // data port width
+    parameter int AXI_ID_WIDTH = 4,
+    parameter int AXI_DATA_WIDTH = 32
 ) (
     input wire clk,
     input wire rstn,

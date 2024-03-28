@@ -4,10 +4,10 @@
 // Module: rip_ring_oscillator_monitor
 // Description: returns if RO count delta2qaz3wesx increased from the previous sample cycle
 module rip_ring_oscillator_monitor #(
-    parameter INVERTER_DELAY = 1,
-    parameter RO_SIZE = 3, // # of NOT gates (odd, >=3)
-    parameter RO_DATAWIDTH = 32,
-    parameter RO_SAMPLE_CYCLE = 100
+    parameter int INVERTER_DELAY = 1,
+    parameter int RO_SIZE = 3, // # of NOT gates (odd, >=3)
+    parameter int RO_DATAWIDTH = 32,
+    parameter int RO_SAMPLE_CYCLE = 100
 ) (
     input wire clk,
     input wire rstn,

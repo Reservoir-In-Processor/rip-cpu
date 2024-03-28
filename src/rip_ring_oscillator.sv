@@ -4,8 +4,8 @@
 // Module: rip_ring_oscillator
 // Description: simple ring oscillator with odd number inverters
 module rip_ring_oscillator #(
-    parameter INVERTER_DELAY = 1,
-    parameter RO_SIZE = 3 // # of NOT gates (odd, >=3)
+    parameter int INVERTER_DELAY = 1,
+    parameter int RO_SIZE = 3 // # of NOT gates (odd, >=3)
 ) (
     input wire rstn,
     output logic ro

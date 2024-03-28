@@ -11,8 +11,8 @@
 module rip_2r1w_bram_byte
     import rip_const::*;
 #(
-  parameter DATA_WIDTH = 32, // bram data width
-  parameter ADDR_WIDTH = 10  // bram data depth
+  parameter int DATA_WIDTH = 32, // bram data width
+  parameter int ADDR_WIDTH = 10  // bram data depth
 ) (
   input wire clk,
   input wire enable_1,
