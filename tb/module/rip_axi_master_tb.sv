@@ -1,10 +1,10 @@
 `timescale 1ns / 1ps
 
 module rip_axi_master_tb #(
-    parameter ID_WIDTH = 4,
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32, // Burst size
-    parameter BURST_LEN = 2
+    parameter int ID_WIDTH = 4,
+    parameter int ADDR_WIDTH = 32,
+    parameter int DATA_WIDTH = 32, // Burst size
+    parameter int BURST_LEN = 2
 ) (
 );
     import rip_const::*;
@@ -13,8 +13,8 @@ module rip_axi_master_tb #(
     import axi_vip_0_pkg::*; // component name retrived from IP configuration window
 
     logic SYS_CLK = '0;
-    localparam sys_clk_period = 10;
-    initial forever #(sys_clk_period/2) SYS_CLK = ~SYS_CLK;
+    localparam int SYS_CLK_PERIOD = 10;
+    initial forever #(SYS_CLK_PERIOD/2) SYS_CLK = ~SYS_CLK;
 
     logic SYS_RSTN = '0;
 

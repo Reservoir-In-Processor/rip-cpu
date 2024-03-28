@@ -101,7 +101,7 @@ package rip_type;
         logic [31:0] bpfp;
         logic [31:0] bpfn;
     } csr_t;
-    
+
     typedef enum logic [1:0] {
         FINISHED = 2'b00,
         RUNNING  = 2'b01,

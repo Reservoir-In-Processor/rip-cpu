@@ -30,7 +30,7 @@ module rip_core
     rip_axi_interface.master M_AXI
 `endif  // VERILATOR
 );
-    localparam NUM_COL = DATA_WIDTH / B_WIDTH; // number of columns in memory
+    localparam int NUM_COL = DATA_WIDTH / B_WIDTH; // number of columns in memory
 
     csr_t csr;
     core_mode_t mode;
@@ -795,7 +795,7 @@ module rip_core
     // reproduce printf function: store to 10000000
     logic [7:0] chars [4];
     generate
-        for (genvar i = 0; i < 4; i++) begin
+        for (genvar i = 0; i < 4; i++) begin : GEN_PRINTF
             assign chars[i] = din_1[8*i+:8];
         end
     endgenerate

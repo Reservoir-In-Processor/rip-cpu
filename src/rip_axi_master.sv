@@ -14,10 +14,10 @@
 module rip_axi_master
     import rip_const::*;
 #(
-    parameter ID_WIDTH = 4,
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32, // Burst size
-    parameter BURST_LEN = 1
+    parameter int ID_WIDTH = 4,
+    parameter int ADDR_WIDTH = 32,
+    parameter int DATA_WIDTH = 32, // Burst size
+    parameter int BURST_LEN = 1
 ) (
     input wire clk,
     input wire rstn,
@@ -40,15 +40,15 @@ module rip_axi_master
     import rip_axi_interface_const::*;
 
     // not crossing a 4KB address boundary is ensured by the parent module
-    localparam AXLEN = BURST_LEN - 1;
-    localparam AXSIZE = $clog2(DATA_WIDTH / B_WIDTH);
+    localparam int AXLEN = BURST_LEN - 1;
+    localparam int AXSIZE = $clog2(DATA_WIDTH / B_WIDTH);
 
     // buffers
     logic [DATA_WIDTH*BURST_LEN-1:0] wdata_buf;
     logic [DATA_WIDTH*BURST_LEN/B_WIDTH-1:0] wstrb_buf;
 
     // burst counters
-    localparam BURST_CNT_WIDTH = (BURST_LEN > 1) ? $clog2(BURST_LEN) : 1;
+    localparam int BURST_CNT_WIDTH = (BURST_LEN > 1) ? $clog2(BURST_LEN) : 1;
     logic [BURST_CNT_WIDTH-1:0] wcnt;
     logic [BURST_CNT_WIDTH-1:0] rcnt;
 

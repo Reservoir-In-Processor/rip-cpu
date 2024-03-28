@@ -19,9 +19,9 @@ module rip_fifo_sync #(
     output logic r_empty
 );
 
-    localparam DEPTH = 2 ** ADDR_WIDTH;
+    localparam int DEPTH = 2 ** ADDR_WIDTH;
 
-    logic [DATA_WIDTH-1:0] sfifo [DEPTH-1:0];
+    logic [DATA_WIDTH-1:0] sfifo [DEPTH];
 
     typedef logic [ADDR_WIDTH:0] addr_t; // +1 MSB for overflow checking
 
