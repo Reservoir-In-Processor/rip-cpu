@@ -58,7 +58,7 @@ module rip_pseudo_core_mmu #(
     logic [AXI_DATA_WIDTH-1:0] data;
     assign addr = mem_offset | (cnt << 2);
     assign data = dout_1;
-    localparam int data_len = 256;
+    localparam int DATA_LEN = 256;
 
     always_ff @(posedge clk) begin
         if (~rstn) begin
@@ -114,7 +114,7 @@ module rip_pseudo_core_mmu #(
                 end
                 WRITEWAIT: begin
                     if (~busy_1) begin
-                        if (cnt < data_len) begin
+                        if (cnt < DATA_LEN) begin
                             state <= READ;
                             addr_1 <= addr;
                             re_1 <= '1;

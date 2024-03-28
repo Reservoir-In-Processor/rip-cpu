@@ -72,7 +72,7 @@ module rip_pseudo_core #(
     logic [AXI_DATA_WIDTH-1:0] data;
     assign addr = mem_offset | (cnt << 2);
     assign data = rdata;
-    localparam int data_len = 256;
+    localparam int DATA_LEN = 256;
 
     always_ff @(posedge clk) begin
         if (~rstn) begin
@@ -129,7 +129,7 @@ module rip_pseudo_core #(
                 end
                 WRITEWAIT: begin
                     if (wdone) begin
-                        if (cnt < data_len) begin
+                        if (cnt < DATA_LEN) begin
                             state <= READ;
                             raddr <= addr;
                             rvalid <= '1;
