@@ -29,7 +29,7 @@ module rip_2r1w_bram_byte
   logic [DATA_WIDTH-1:0] ram [(2 ** ADDR_WIDTH)];
 
   generate
-    for (genvar i = 0; i < DATA_WIDTH/B_WIDTH; i++) begin
+    for (genvar i = 0; i < DATA_WIDTH/B_WIDTH; i++) begin : GEN_BYTE_ADDRESS
       always_ff @(posedge clk) begin
         if (enable_1) begin
           if (we_1[i]) begin

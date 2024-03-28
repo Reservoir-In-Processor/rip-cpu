@@ -17,10 +17,10 @@ module rip_ring_oscillator #(
     assign ro = nots[0];
 
     generate
-        for (genvar i = 0; i < RO_SIZE; i++) begin
-            if (i == 0) begin
+        for (genvar i = 0; i < RO_SIZE; i++) begin : GEN_RO_NOTS
+            if (i == 0) begin : GEN_RO_NOT_FIRST
                 not #(INVERTER_DELAY) (nots[(i+1) % RO_SIZE], ~rstn ? '0 : nots[i]);
-            end else begin
+            end else begin : GEN_RO_NOT_OTHERS
                 not #(INVERTER_DELAY) (nots[(i+1) % RO_SIZE], nots[i]);
             end
         end

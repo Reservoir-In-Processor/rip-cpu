@@ -81,9 +81,9 @@ module rip_branch_predictor
 
     logic [HISTORY_LEN-1:0] new_global_history;
     generate
-        if (HISTORY_LEN == 1) begin
+        if (HISTORY_LEN == 1) begin : GEN_GHISTORY_LEN1
             assign new_global_history = actual;
-        end else begin
+        end else begin : GEN_GHISTORY_MULTILEN
             assign new_global_history = {global_histroy[HISTORY_LEN-2:0], actual};
         end
     endgenerate
