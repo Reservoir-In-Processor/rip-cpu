@@ -58,7 +58,7 @@ module rip_pseudo_core_mmu #(
     logic [AXI_DATA_WIDTH-1:0] data;
     assign addr = mem_offset | (cnt << 2);
     assign data = dout_1;
-    localparam data_len = 256;
+    localparam int data_len = 256;
 
     always_ff @(posedge clk) begin
         if (~rstn) begin

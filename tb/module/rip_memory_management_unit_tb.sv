@@ -20,7 +20,7 @@ module rip_memory_management_unit_tb #(
     import axi_vip_0_pkg::*; // component name retrived from IP configuration window
 
     logic SYS_CLK = '0;
-    localparam sys_clk_period = 10;
+    localparam int sys_clk_period = 10;
     initial forever #(sys_clk_period/2) SYS_CLK = ~SYS_CLK;
 
     logic SYS_RSTN = '0;
