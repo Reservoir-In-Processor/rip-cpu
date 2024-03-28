@@ -52,14 +52,15 @@ module rip_pseudo_core #(
         .M_AXI(M_AXI)
     );
 
-    enum logic [5:0] {
+    typedef enum logic [5:0] {
         SLEEP,
         INIT,
         READ,
         READWAIT,
         WRITE,
         WRITEWAIT
-    } state;
+    } state_t;
+    state_t state;
 
     assign busy = state == SLEEP ? 'b00 :
                     state == READ  || state == READWAIT  ? 'b10 :
@@ -138,6 +139,7 @@ module rip_pseudo_core #(
                         end
                     end
                 end
+                default: state <= SLEEP;
             endcase
         end
     end
