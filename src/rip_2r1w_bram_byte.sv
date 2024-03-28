@@ -26,7 +26,7 @@ module rip_2r1w_bram_byte
 );
 
   (* ram_style = "block" *)
-  logic [DATA_WIDTH-1:0] ram [(2 ** ADDR_WIDTH)-1:0];
+  logic [DATA_WIDTH-1:0] ram [(2 ** ADDR_WIDTH)];
 
   generate
     for (genvar i = 0; i < DATA_WIDTH/B_WIDTH; i++) begin

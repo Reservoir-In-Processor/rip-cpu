@@ -25,7 +25,7 @@ module rip_2r1w_bram
 );
 
   (* ram_style = "block" *)
-  logic [DATA_WIDTH-1:0] ram [(2 ** ADDR_WIDTH)-1:0];
+  logic [DATA_WIDTH-1:0] ram [(2 ** ADDR_WIDTH)];
 
   always_ff @(posedge clk) begin
     if (enable_1) begin

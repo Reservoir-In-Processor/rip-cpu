@@ -23,7 +23,7 @@ module rip_fifo_async #(
 
     localparam DEPTH = 2 ** ADDR_WIDTH;
 
-    logic [DATA_WIDTH-1:0] afifo [DEPTH-1:0];
+    logic [DATA_WIDTH-1:0] afifo [DEPTH];
 
     typedef logic [ADDR_WIDTH:0] addr_t; // +1 MSB for overflow checking
 
