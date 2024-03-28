@@ -30,7 +30,7 @@ module rip_core
     rip_axi_interface.master M_AXI
 `endif  // VERILATOR
 );
-    localparam NUM_COL = DATA_WIDTH / B_WIDTH; // number of columns in memory
+    localparam int NUM_COL = DATA_WIDTH / B_WIDTH; // number of columns in memory
 
     csr_t csr;
     core_mode_t mode;

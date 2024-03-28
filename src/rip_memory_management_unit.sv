@@ -47,7 +47,7 @@ module rip_memory_management_unit
     logic [LINE_SIZE*B_WIDTH-1:0] rdata;
     logic rdone;
 
-    localparam BURST_LEN = LINE_SIZE / (AXI_DATA_WIDTH / B_WIDTH);
+    localparam int BURST_LEN = LINE_SIZE / (AXI_DATA_WIDTH / B_WIDTH);
     rip_axi_master #(
         .ID_WIDTH(AXI_ID_WIDTH),
         .ADDR_WIDTH(ADDR_WIDTH),
